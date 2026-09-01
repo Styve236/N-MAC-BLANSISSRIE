@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press'ing API — Console de test</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Segoe UI,Arial,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:#94a3b8;font-size:13px;margin-bottom:20px}
+.note{font-size:12px;color:#fbbf24;background:#451a03;border:1px solid #78350f;border-radius:6px;padding:8px 12px;margin-bottom:18px;line-height:1.5}
+section{background:#1e293b;border:1px solid #334155;border-radius:10px;margin-bottom:18px;overflow:hidden}
+h2{background:#334155;padding:10px 14px;font-size:15px}
+.card{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px 14px;border-top:1px solid #334155}
+.r-badge{font-family:Consolas,monospace;font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;color:#fff;min-width:52px;text-align:center;height:fit-content}
+.m-GET{background:#059669}.m-POST{background:#2563eb}.m-PUT{background:#d97706}.m-PATCH{background:#7c3aed}.m-DELETE{background:#dc2626}
+.card h3{font-size:14px;margin-bottom:6px;font-weight:600}
+.url{font-family:Consolas,monospace;font-size:12px;color:#7dd3fc;background:#0f172a;border-radius:5px;padding:3px 8px;display:inline-block;margin-bottom:8px}
+table{border-collapse:collapse}
+td{padding:3px 4px}
+label{font-size:12px;color:#94a3b8;display:block;margin-bottom:2px}
+input,select,textarea{background:#0f172a;border:1px solid #475569;color:#e2e8f0;border-radius:5px;padding:5px 8px;font-size:13px;font-family:Consolas,monospace}
+input{width:170px} select{width:200px} input[type=date],input[type=datetime-local]{width:190px}
+textarea{width:100%;min-height:70px;resize:vertical;font-size:12px}
+.actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{background:#0ea5e9;border:none;color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600}
+button:hover{background:#0284c7}
+button.add{background:#16a34a}button.add:hover{background:#15803d}
+button.del{background:#ef4444;padding:3px 9px}button.del:hover{background:#b91c1c}
+button.open{background:#22c55e}
+button:disabled{opacity:.45;cursor:not-allowed}
+input[type=file]{width:auto;color:#94a3b8}
+pre{background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px;font-family:Consolas,monospace;font-size:11px;margin-top:8px;white-space:pre-wrap;word-break:break-all;color:#a5f3fc;max-height:300px;overflow:auto}
+pre.err{color:#fca5a5}
+pre.info{color:#94a3b8}
+.sous-total{color:#fbbf24;font-weight:700}
+.grand-total{font-size:15px;color:#34d399;font-weight:800}
+.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.thumbs img{width:120px;height:90px;object-fit:cover;border:2px solid #334155;border-radius:6px;cursor:pointer}
+.radio-grp{display:flex;gap:12px;align-items:center}
+.radio-grp label{display:flex;gap:4px;align-items:center;margin:0;color:#e2e8f0}
+.hint{font-size:11px;color:#64748b}
+</style>
+</head>
+<body>
+<h1>Press&#8217;ing API — Console de test</h1>
+<div class="sub">Interface visuelle : plus besoin de taper du JSON. Les listes (clients, tarifs) sont chargées automatiquement.</div>
+<div class="note">Mode dev : sécurité <b>permitAll</b> (aucun login). Les SMS sont simulés (logs + table <b>sms_notification</b>). Photos compressées en JPEG 1600px / qualité 75% et stockées dans <b>uploads/commandes</b>.</div>
+<div class="note" id="client-banner" style="color:#86efac;background:#052e16;border-color:#14532d">Aucun client retenu. Cherchez-le par nom dans la section 1 et cliquez sur «&nbsp;Choisir&nbsp;».</div>
+<section>
+  <h2>0. Connexion (JWT) — l'API est maintenant sécurisée</h2>
+  <div class="card">
+    <div class="r-badge m-POST">POST</div>
+    <div>
+      <h3>Se connecter <span style="font-weight:400;font-size:12px">&mdash; le jeton est ajouté automatiquement à chaque appel</span></h3>
+      <span class="url">/api/auth/login</span>
+      <div class="actions" style="margin-top:8px">
+        <input type="text" id="a-email" value="admin@press.com" placeholder="email" style="width:220px">
+        <input type="password" id="a-pass" value="admin123" placeholder="mot de passe" style="width:170px">
+        <button onclick="login()">Se connecter</button>
+        <button onclick="logout()" style="background:#dc2626">Se déconnecter</button>
+      </div>
+      <pre class="info" id="a-out">Compte par défaut créé au démarrage : <b>admin@press.com</b> / <b>admin123</b> (rôle ADMIN). Les autres rôles ont des droits limités (ex : un LIVREUR ne crée pas de clients).</pre>
+      <pre class="info" id="a-user" style="color:#86efac;display:none"></pre>
+    </div>
+  </div>
+</section>
+<div id="app"></div>
+
+<script>
+const base = location.origin;
+const ETATS=$(('RECU,INVENTAIRE,EN_LAVAGE,REPASSAGE,PRET,RECUPERE,PAYEE').split(','));
+const TYPES=$(('LAVAGE_SIMPLE,NETTOYAGE_A_SEC,REPASSAGE,LAUNDRY').split(','));
+const MOYENS=$(('ESPECES,ORANGE_MONEY,MTN_MONEY').split(','));
+const ROLES=$(('ADMIN,RECEPTIONNISTE,AGENT_PRODUCTION,LIVREUR').split(','));
+function $(a){return a}
+const state = { clients: [], tarifs: [], choisi: null };
+
+let token = localStorage.getItem("pressing_token") || "";
+function apiFetch(url, init){
+  init = init || {};
+  init.headers = init.headers || {};
+  if (token) init.headers["Authorization"] = "Bearer " + token;
+  return fetch(url, init);
+}
+async function login(){
+  const email = document.getElementById("a-email").value.trim();
+  const pass = document.getElementById("a-pass").value;
+  const out = document.getElementById("a-out");
+  setOut(out, "info", "Connexion …");
+  try {
+    const res = await fetch(base + "/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password: pass }) });
+    const text = await res.text();
+    if (!res.ok) { setOut(out, "err", "HTTP " + res.status + " : " + text); return; }
+    const d = JSON.parse(text);
+    token = d.token;
+    localStorage.setItem("pressing_token", token);
+    afficherProfil(d);
+    setOut(out, "info", "Connecté : " + d.nom + " · rôle " + d.role);
+  } catch (e) { setOut(out, "err", "Erreur réseau : " + e.message); }
+}
+function logout(){
+  token = ""; localStorage.removeItem("pressing_token");
+  const u = document.getElementById("a-user"); u.style.display = "none"; u.textContent = "";
+  setOut(document.getElementById("a-out"), "info", "Déconnecté. Les appels API sans jeton renverront 401.");
+}
+function afficherProfil(d){
+  const u = document.getElementById("a-user");
+  u.style.display = "block";
+  u.textContent = "Connecté en tant que " + d.nom + " · " + d.email + " · rôle : " + d.role;
+}
+async function initSession(){
+  if (!token) return;
+  try {
+    const res = await apiFetch(base + "/api/auth/profil");
+    if (res.ok) afficherProfil(await res.json());
+    else { token = ""; localStorage.removeItem("pressing_token"); }
+  } catch (e) {}
+}
+
+const CASES = [
+  { sec:"1. Clients", items:[
+    { label:"Créer un client", m:"POST", url:"/api/clients", fields:[
+      {k:"nom",lab:"Nom",req:true,ph:"ex: Paul Mbappé"},
+      {k:"telephone",lab:"Téléphone",req:true,ph:"ex: 699121314"},
+      {k:"ville",lab:"Ville",ph:"Douala"},
+      {k:"quartier",lab:"Quartier",ph:"Akwa"}] },
+    { label:"Lister tous les clients", m:"GET", url:"/api/clients" },
+    { label:"Consulter un client", m:"GET", url:"/api/clients/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Rechercher par téléphone", m:"GET", url:"/api/clients/recherche/telephone", q:[{n:"telephone",lab:"Téléphone"}] }
+  ]},
+  { sec:"2. Commandes", items:[
+    { label:"Lister / rechercher des commandes", m:"GET", url:"/api/commandes", q:[
+      {n:"clientId",lab:"Client (id, vide=tous)",type:"number",cl:true},
+      {n:"statut",lab:"Statut",type:"select",ov:ETATS},
+      {n:"dateDebut",lab:"Du (dépôt)",type:"date"},
+      {n:"dateFin",lab:"Au (dépôt)",type:"date"}] },
+    { label:"Détail d'une commande", m:"GET", url:"/api/commandes/{id}", path:[{n:"id",lab:"Id commande",type:"number"}] },
+    { label:"Suivre le statut (cycle)", m:"PATCH", url:"/api/commandes/{id}/statut", path:[{n:"id",lab:"Id",type:"number"}],
+      fields:[{k:"statut",lab:"Nouveau statut",type:"select",ov:ETATS,req:true}] },
+    { label:"Marquer le linge prêt (status PRET + SMS)", m:"POST", url:"/api/commandes/{id}/pret", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Historique d'un client", m:"GET", url:"/api/commandes/client/{clientId}", path:[{n:"clientId",lab:"Id client",type:"number"}] },
+    { label:"Envoyer les rappels des impayés", m:"POST", url:"/api/commandes/rappel-impayes" }
+  ]},
+  { sec:"3. Lignes & Photos (traçabilité)", items:[
+    { label:"Photos d'une ligne (lister)", m:"GET", url:"/api/lignes/{idligne}/photos", path:[{n:"idligne",lab:"Id ligne",type:"number"}], photoList:true },
+    { label:"Ajouter une photo (fichier)", m:"POST", url:"/api/lignes/{idligne}/photos", path:[{n:"idligne",lab:"Id ligne",type:"number"}], upload:true,
+      fields:[{k:"type",lab:"Période",type:"select",ov:$(["AVANT","APRES"])}] },
+    { label:"Supprimer une photo", m:"DELETE", url:"/api/photos/{idphoto}", path:[{n:"idphoto",lab:"Id photo",type:"number"}] }
+  ]},
+  { sec:"4. Paiements", items:[
+    { label:"Payer une commande", m:"POST", url:"/api/commandes/{id}/payer", path:[{n:"id",lab:"Id commande",type:"number"}], fields:[
+      {k:"montant",lab:"Montant (FCFA)",type:"number",req:true,ph:"ex: 5.25"},
+      {k:"moyenPaiement",lab:"Moyen",type:"select",ov:MOYENS,req:true},
+      {k:"referenceTransaction",lab:"Référence (optionnel)"}] },
+    { label:"Reste à payer", m:"GET", url:"/api/commandes/{id}/payer", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Statut de paiement (payée/restant)", m:"GET", url:"/api/commandes/{id}/statut-paiement", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Lignes de paiement d'une commande", m:"GET", url:"/api/commandes/{id}/paiements", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Historique des paiements d'un client", m:"GET", url:"/api/clients/{id}/paiements", path:[{n:"id",lab:"Id client",type:"number"}] },
+    { label:"Chiffre d'affaires du jour", m:"GET", url:"/api/paiements/ca-du-jour" }
+  ]},
+  { sec:"5. Tarifs", items:[
+    { label:"Créer un tarif", m:"POST", url:"/api/tarifs", fields:[
+      {k:"nom",lab:"Nom",req:true,ph:"ex: Lavage chemise"},
+      {k:"typevetement",lab:"Type vêtement",ph:"ex: Chemise"},
+      {k:"typeNettoyage",lab:"Traitement",type:"select",ov:TYPES,req:true},
+      {k:"prixauklo",lab:"Prix/kg (FCFA)",type:"number",ph:"ex: 2.5"},
+      {k:"prixunitaire",lab:"Prix/pièce (FCFA)",type:"number",ph:"ex: 1.0"}] },
+    { label:"Lister les tarifs", m:"GET", url:"/api/tarifs", q:[{n:"typeNettoyage",lab:"Traitement (vide=tous)",type:"select",ov:TYPES}] },
+    { label:"Tarifs actifs uniquement", m:"GET", url:"/api/tarifs/actifs" },
+    { label:"Consulter un tarif", m:"GET", url:"/api/tarifs/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Modifier un tarif", m:"PUT", url:"/api/tarifs/{id}", path:[{n:"id",lab:"Id",type:"number"}], fields:[
+      {k:"nom",lab:"Nom",req:true},
+      {k:"typevetement",lab:"Type vêtement"},
+      {k:"typeNettoyage",lab:"Traitement",type:"select",ov:TYPES,req:true},
+      {k:"prixauklo",lab:"Prix/kg",type:"number",req:true},
+      {k:"prixunitaire",lab:"Prix/pièce",type:"number",req:true}] },
+    { label:"Désactiver un tarif", m:"DELETE", url:"/api/tarifs/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Réactiver un tarif", m:"PATCH", url:"/api/tarifs/{id}/activer", path:[{n:"id",lab:"Id",type:"number"}] }
+  ]},
+  { sec:"6. Employés", items:[
+    { label:"Créer un employé", m:"POST", url:"/api/users", fields:[
+      {k:"nom",lab:"Nom complet",req:true,ph:"ex: Alain Nkou"},
+      {k:"tels",lab:"Téléphone(s)",req:true,ph:"ex: 699101112"},
+      {k:"email",lab:"Email",req:true,ph:"ex: alain@press.com"},
+      {k:"password",lab:"Mot de passe",type:"password",req:true},
+      {k:"role",lab:"Rôle",type:"select",ov:ROLES,req:true}] },
+    { label:"Lister les employés", m:"GET", url:"/api/users" },
+    { label:"Consulter un employé", m:"GET", url:"/api/users/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Modifier un employé", m:"PUT", url:"/api/users/{id}", path:[{n:"id",lab:"Id",type:"number"}], fields:[
+      {k:"nom",lab:"Nom complet",req:true},
+      {k:"tels",lab:"Téléphone(s)"},
+      {k:"email",lab:"Email"},
+      {k:"role",lab:"Rôle",type:"select",ov:ROLES},
+      {k:"password",lab:"Mot de passe (vide = inchangé)",type:"password"}] },
+    { label:"Activer / désactiver un compte", m:"PATCH", url:"/api/users/{id}/statut", path:[{n:"id",lab:"Id",type:"number"}],
+      fields:[{k:"actif",lab:"Actif ?",type:"select",ov:$(["true","false"]),req:true}] },
+    { label:"Réinitialiser le mot de passe", m:"POST", url:"/api/users/{id}/mot-de-passe", path:[{n:"id",lab:"Id",type:"number"}],
+      fields:[{k:"password",lab:"Nouveau mot de passe",type:"password",req:true}] }
+  ]},
+  { sec:"7. Reçus", items:[
+    { label:"Reçu d'une commande (JSON)", m:"GET", url:"/api/commandes/{id}/recu", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Envoyer le lien du reçu par SMS", m:"POST", url:"/api/commandes/{id}/recu/envoyer", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Ouvrir le reçu imprimable", m:"GET", url:"/recu/{numeroTicket}", path:[{n:"numeroTicket",lab:"N° ticket",ph:"ex: TK-XXXXXXXX"}], open:true }
+  ]},
+  { sec:"8. Notifications SMS", items:[
+    { label:"Historique des SMS envoyés", m:"GET", url:"/api/sms" }
+  ]},
+  { sec:"9. Statistiques", items:[
+    { label:"Tableau de bord (CA, commandes, top clients, impayés…)", m:"GET", url:"/api/statistiques" }
+  ]}
+];
+
+const app = document.getElementById("app");
+
+// ---------- Sélecteurs dynamiques (clients / tarifs) ----------
+function fillClientSelects(){
+  document.querySelectorAll("[data-clients]").forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— choisir un client —</option>' + state.clients
+      .map(c => `<option value="${c.idclient}">#${c.idclient} ${c.nom} (${c.telephone})</option>`).join("");
+    sel.value = cur;
+  });
+}
+function fillTarifSelects(){
+  document.querySelectorAll("[data-tarifs]").forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— choisir un tarif —</option>' + state.tarifs
+      .map(t => `<option value="${t.idtarif}" data-klo="${t.prixauklo||0}" data-pc="${t.prixunitaire||0}" data-type="${t.typeNettoyage||''}">#${t.idtarif} ${t.nom||t.typevetement} · ${t.typeNettoyage||''}</option>`).join("");
+    sel.value = cur;
+  });
+}
+
+// ---------- Rendu générique d'une carte ----------
+function card(it, i){
+  const div = document.createElement("div");
+  div.className = "card";
+  const badge = document.createElement("div");
+  badge.className = "r-badge m-" + it.m;
+  badge.textContent = it.m;
+  div.appendChild(badge);
+  const right = document.createElement("div");
+  const h3 = document.createElement("h3");
+  h3.textContent = it.label;
+  right.appendChild(h3);
+  const span = document.createElement("span");
+  span.className = "url";
+  span.textContent = base + it.url;
+  right.appendChild(span);
+  const tb = document.createElement("table");
+  const vals = {};
+  const addInput = (f, where) => {
+    const tr = document.createElement("tr");
+    const tdL = document.createElement("td");
+    const lab = document.createElement("label");
+    lab.textContent = f.lab + (f.req ? " *" : "");
+    tdL.appendChild(lab);
+    const tdI = document.createElement("td");
+    let el;
+    if (f.type === "select") {
+      el = document.createElement("select");
+      el.innerHTML = '<option value="">—</option>' + (f.ov||[]).map(o => `<option>${o}</option>`).join("");
+      if (f.cl) el.dataset.clients = "1";
+    } else {
+      el = document.createElement("input");
+      el.type = f.type || "text";
+      el.placeholder = f.ph || "";
+    }
+    el.dataset.f = f.k;
+    tdI.appendChild(el);
+    tr.appendChild(tdL);
+    tr.appendChild(tdI);
+    tb.appendChild(tr);
+    return el;
+  };
+  const ids = {};
+  (it.path||[]).forEach(f => { ids[f.n] = addInput({lab:(f.lab||f.n), type:(f.type||"text"), ph:(f.ph||"")}); });
+  if (it.q) (it.q).forEach(f => { ids["q_"+f.n] = addInput({lab:(f.lab||f.n), type:(f.type||"text"), ov:f.ov, cl:f.cl}); });
+  (it.fields||[]).forEach(f => { ids[f.k] = addInput({lab:f.lab, type:(f.type||"text"), ov:f.ov, ph:f.ph, req:f.req}); });
+  right.appendChild(tb);
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const btn = document.createElement("button");
+  btn.textContent = "Exécuter";
+  const out = document.createElement("pre");
+  out.className = "info";
+  out.textContent = "Remplissez les champs puis cliquez sur Exécuter.";
+  btn.onclick = () => run(div, it, ids, out);
+  actions.appendChild(btn);
+  if (it.upload) {
+    const fi = document.createElement("input");
+    fi.type = "file";
+    fi.id = "file_" + i;
+    actions.insertBefore(fi, btn);
+  }
+  if (it.open) {
+    const ob = document.createElement("button");
+    ob.className = "open";
+    ob.textContent = "Ouvrir dans un onglet";
+    ob.onclick = () => {
+      let u = base + it.url;
+      for (const k in ids) if (ids[k] && !k.startsWith("q_")) u = u.replace("{" + k + "}", encodeURIComponent(ids[k].value));
+      window.open(u, "_blank");
+    };
+    actions.appendChild(ob);
+  }
+  right.appendChild(actions);
+  right.appendChild(out);
+  div.appendChild(right);
+  return div;
+}
+
+// ---------- Exécution générique ----------
+async function run(div, it, ids, out){
+  let url = base + it.url;
+  const qs = new URLSearchParams();
+  for (const k in ids) {
+    const el = ids[k];
+    if (!el || !el.value) continue;
+    if (k.startsWith("q_")) qs.append(k.slice(2), el.value);
+    else url = url.replace("{" + k + "}", encodeURIComponent(el.value));
+  }
+  const q = qs.toString();
+  if (q) url += (url.includes("?") ? "&" : "?") + q;
+
+  const body = {};
+  let hasBody = false;
+  for (const f of (it.fields||[])) {
+    const el = ids[f.k];
+    if (!el || el.value === "") continue;
+    hasBody = true;
+    body[f.k] = (f.type === "number") ? Number(el.value) : (f.k === "actif" ? el.value === "true" : el.value);
+  }
+  for (const f of (it.path||[])) {
+    const el = ids[f.n];
+    if (!el || el.value === "") { setOut(out, "err", "Champ obligatoire : " + f.lab); return; }
+  }
+
+  let formData;
+  if (it.upload) {
+    const fi = div.querySelector("input[type=file]");
+    if (!fi.files || !fi.files[0]) { setOut(out, "err", "Choisissez un fichier image"); return; }
+    formData = new FormData();
+    formData.append("file", fi.files[0]);
+    if (body.type) formData.append("type", body.type);
+  }
+
+  if (!hasBody && it.fields && it.fields.length && !it.upload) {
+    setOut(out, "err", "Remplissez au moins un champ du corps.");
+    return;
+  }
+
+  setOut(out, "info", it.m + " " + url + "  …");
+  try {
+    const init = { method: it.m };
+    if (formData) init.body = formData;
+    else if (hasBody) { init.headers = { "Content-Type": "application/json" }; init.body = JSON.stringify(body); }
+    const res = await apiFetch(url, init);
+    const text = await res.text();
+    let contenu;
+    try { contenu = JSON.stringify(JSON.parse(text), null, 2); } catch { contenu = text; }
+    setOut(out, res.ok ? "" : "err", it.m + " " + url + "\nHTTP " + res.status + (res.statusText ? " (" + res.statusText + ")" : "") + (text ? "\n\n" + contenu : "\n\n(réponse vide)"));
+    if (it.photoList && res.ok) {
+      let data; try { data = JSON.parse(text); } catch { data = null; }
+      if (Array.isArray(data) && data.length) {
+        const th = document.createElement("div");
+        th.className = "thumbs";
+        data.forEach(p => {
+          const a = document.createElement("a");
+          a.href = base + p.url;
+          a.target = "_blank";
+          const img = document.createElement("img");
+          img.src = base + p.url;
+          img.title = p.typephoto + " · " + p.dateTime;
+          a.appendChild(img);
+          th.appendChild(a);
+        });
+        out.after(th);
+      }
+    }
+  } catch (e) {
+    setOut(out, "err", "Erreur réseau : " + e.message + "\nVérifiez que le serveur tourne.");
+  }
+}
+
+function setOut(out, cls, txt){
+  out.className = cls;
+  out.textContent = txt;
+}
+
+// ---------- Carte spéciale : CRÉER UNE COMMANDE ----------
+function buildCommandeCard(){
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `<div class="r-badge m-POST" style="grid-row:span 2">POST</div>
+  <div>
+    <h3>Créer une commande (lignes au kilo / à la pièce)</h3>
+    <span class="url">${base}/api/commandes</span>
+    <div style="margin-top:8px">
+      <label>Client *</label>
+      <select data-clients id="cc-client" style="width:280px"></select>
+      <input type="number" placeholder="ou id direct" id="cc-clientid" style="width:120px;margin-left:8px">
+    </div>
+    <div style="margin-top:6px">
+      <label>Date de retrait prévue</label>
+      <input type="datetime-local" id="cc-date">
+    </div>
+    <div style="margin-top:10px"><label>Lignes (traitement, unité, prix auto, photo possible)</label></div>
+    <table id="cc-lignes" style="width:100%"></table>
+    <div style="margin-top:8px">
+      <button class="add" onclick="addLigneRow()">+ Ajouter une ligne</button>
+    </div>
+    <div style="margin-top:10px"><label>Montant total de la commande</label>
+      <div class="grand-total" id="cc-total">0,00 FCFA</div>
+    </div>
+    <div class="actions" style="margin-top:8px">
+      <button onclick="creerCommande(this)">Enregistrer la commande</button>
+      <span class="hint" id="cc-hint"></span>
+    </div>
+    <pre class="info" id="cc-out">Ajoutez au moins une ligne (poids en kg OU quantité en pièces) puis enregistrez.</pre>
+  </div>`;
+  return div;
+}
+
+let ligneCounter = 0;
+function addLigneRow(givre){
+  const tb = document.getElementById("cc-lignes");
+  const tr = document.createElement("tr");
+  const n = ++ligneCounter;
+  const selOpts = ['<option value="">— tarif —</option>']
+    .concat(state.tarifs.map(t => `<option value="${t.idtarif}" data-klo="${t.prixauklo||0}" data-pc="${t.prixunitaire||0}" data-type="${t.typeNettoyage||''}">#${t.idtarif} ${t.nom||t.typevetement}</option>`)).join("");
+  tr.innerHTML = `
+    <td>
+      <label>Tarif *</label>
+      <div style="display:flex;gap:4px">
+        <select id="l${n}-tarif" style="width:190px">${selOpts}</select>
+        <button class="del" onclick="event.preventDefault();this.closest('tr').remove();recalcTotal()">✕</button>
+      </div>
+    </td>
+    <td>
+      <label>Traitement</label>
+      <select id="l${n}-type">${'<option></option>' + TYPES.map(t=>`<option>${t}</option>`).join('')}</select>
+    </td>
+    <td>
+      <label>Unité</label>
+      <div class="radio-grp" id="l${n}-unis">
+        <label><input type="radio" name="un${n}" value="KILO" checked> Au kilo</label>
+        <label><input type="radio" name="un${n}" value="PIECE"> À la pièce</label>
+      </div>
+    </td>
+    <td>
+      <label>Poids (kg)</label>
+      <input type="number" step="0.05" min="0" id="l${n}-poids" value="1">
+    </td>
+    <td>
+      <label>Quantité</label>
+      <input type="number" min="1" id="l${n}-qte" value="1" disabled>
+    </td>
+    <td>
+      <label>Description (indices)</label>
+      <input type="text" id="l${n}-desc" placeholder="ex: robe blanche, tache…" style="width:180px">
+    </td>
+    <td><label>Sous-total</label><div class="sous-total" id="l${n}-st">—</div></td>`;
+  const tarifEl = tr.querySelector("select[id=l" + n + "-tarif]");
+  tarifEl.onchange = () => { onTarifChange(n); };
+  tr.querySelectorAll("input[type=radio]").forEach(r => r.onchange = () => onUniteChange(n));
+  tr.querySelectorAll("input[type=number],input[type=text]").forEach(inp => inp.oninput = () => calcLigne(n));
+  tb.appendChild(tr);
+  onTarifChange(n);
+  recalcTotal();
+}
+
+function onTarifChange(n){
+  const sel = document.getElementById("l" + n + "-tarif");
+  const opt = sel.selectedOptions[0];
+  const typeSel = document.getElementById("l" + n + "-type");
+  if (opt && opt.dataset.type) typeSel.value = opt.dataset.type;
+  else typeSel.value = "";
+  recalcTotal();
+}
+function onUniteChange(n){
+  const unite = document.querySelector(`input[name="un${n}"]:checked`).value;
+  document.getElementById("l" + n + "-poids").disabled = unite !== "KILO";
+  document.getElementById("l" + n + "-qte").disabled   = unite !== "PIECE";
+  calcLigne(n);
+}
+function calcLigne(n){
+  const sel = document.getElementById("l" + n + "-tarif");
+  const opt = sel.selectedOptions[0];
+  const st = document.getElementById("l" + n + "-st");
+  if (!opt || !opt.value) { st.textContent = "—"; recalcTotal(); return; }
+  const unite = document.querySelector(`input[name="un${n}"]:checked`).value;
+  let mont;
+  if (unite === "KILO") {
+    const p = parseFloat(document.getElementById("l" + n + "-poids").value) || 0;
+    mont = p * (parseFloat(opt.dataset.klo) || 0);
+  } else {
+    const q = parseInt(document.getElementById("l" + n + "-qte").value, 10) || 0;
+    mont = q * (parseFloat(opt.dataset.pc) || 0);
+  }
+  st.textContent = mont.toFixed(2) + " FCFA";
+  recalcTotal();
+}
+function recalcTotal(){
+  let total = 0;
+  document.querySelectorAll("#cc-lignes tr").forEach(tr => {
+    const st = tr.querySelector(".sous-total");
+    if (st && st.textContent !== "—") total += parseFloat(st.textContent) || 0;
+  });
+  document.getElementById("cc-total").textContent = total.toFixed(2).replace(".", ",") + " FCFA";
+}
+
+async function creerCommande(btn){
+  const out = document.getElementById("cc-out");
+  const clientId = (state.choisi ? state.choisi.id : "")
+    || document.getElementById("cc-clientid").value
+    || document.getElementById("cc-client").value;
+  const lignes = [];
+  document.querySelectorAll("#cc-lignes tr").forEach(tr => {
+    const n = tr.querySelector("select[id^='l']").id.match(/\d+/)[0];
+    const tarifId = document.getElementById("l" + n + "-tarif").value;
+    const typeN = document.getElementById("l" + n + "-type").value || null;
+    const unite = document.querySelector(`input[name="un${n}"]:checked`).value;
+    const poids = unite === "KILO" ? (parseFloat(document.getElementById("l" + n + "-poids").value) || null) : null;
+    const quantite = unite === "PIECE" ? (parseInt(document.getElementById("l" + n + "-qte").value, 10) || null) : null;
+    const desc = document.getElementById("l" + n + "-desc").value || null;
+    if (tarifId) lignes.push({ tarifId: Number(tarifId), typeNettoyage: typeN, poids, quantite, description: desc });
+  });
+  if (!clientId) { setOut(out, "err", "Choisissez un client."); return; }
+  if (!lignes.length) { setOut(out, "err", "Ajoutez au moins une ligne."); return; }
+  const body = { clientId: Number(clientId), lignes };
+  const d = document.getElementById("cc-date").value;
+  if (d) body.dateRetraitPrevue = d + ":00";
+  setOut(out, "info", "POST " + base + "/api/commandes  …");
+  try {
+    const res = await fetch(base + "/api/commandes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const text = await res.text();
+    let c; try { c = JSON.stringify(JSON.parse(text), null, 2); } catch { c = text; }
+    setOut(out, res.ok ? "" : "err", "POST " + base + "/api/commandes\nHTTP " + res.status + (res.statusText ? " (" + res.statusText + ")" : "") + (text ? "\n\n" + c : "\n\n(vide)"));
+    if (res.ok) {
+      const cmd = JSON.parse(text);
+      const hint = document.getElementById("cc-hint");
+      hint.innerHTML = "Commande <b>" + cmd.numeroTicket + "</b> créée. Utilisez la section <b>3. Lignes &amp; Photos</b> : pour chaque ligne de la réponse, copiez son <b>id ligne</b> et ajoutez ses photos.";
+    }
+  } catch (e) {
+    setOut(out, "err", "Erreur réseau : " + e.message);
+  }
+}
+
+// ---------- Assemblage ----------
+CASES.forEach(sec => {
+  const section = document.createElement("section");
+  const h = document.createElement("h2");
+  h.textContent = sec.sec;
+  section.appendChild(h);
+  sec.items.forEach((it, i) => {
+    if (it.custom) section.appendChild(buildCommandeCard());
+    else section.appendChild(card(it, i));
+  });
+  app.appendChild(section);
+});
+// la carte "créer commande" est insérée en tête de la section 2
+const sec2 = document.querySelectorAll("section")[1];
+sec2.insertBefore(buildCommandeCard(), sec2.children[1]).querySelector("[data-clients]").dataset.clients = "1";
+addLigneRow();
+// la carte "rechercher par nom" est ajoutée en fin de la section 1
+document.querySelectorAll("section")[0].appendChild(buildClientSearchCard());
+
+// ---------- Carte spéciale : RECHERCHER UN CLIENT PAR NOM (homonymes) ----------
+function buildClientSearchCard(){
+  const div = document.createElement("div");
+  div.className = "card";
+  const badge = document.createElement("div");
+  badge.className = "r-badge m-GET";
+  badge.textContent = "GET";
+  div.appendChild(badge);
+  const right = document.createElement("div");
+  right.innerHTML = `
+    <h3>Rechercher un client par nom (homonymes = numéros différents)</h3>
+    <span class="url">${base}/api/clients/recherche/nom?nom=…</span>
+    <div class="actions" style="margin-top:8px">
+      <input type="text" id="cli-nom" placeholder="Nom du client (ex: Paul)" style="width:240px">
+      <button onclick="rechercherClientsParNom()">Rechercher</button>
+    </div>
+    <pre class="info" id="cli-res">Saisissez un nom puis « Rechercher ». Tous les homonymes s'affichent avec leur numéro : cliquez sur « Choisir » pour le bon.</pre>`;
+  div.appendChild(right);
+  return div;
+}
+
+async function rechercherClientsParNom(){
+  const nom = document.getElementById("cli-nom").value.trim();
+  const out = document.getElementById("cli-res");
+  if (!nom) { setOut(out, "err", "Saisissez un nom."); return; }
+  setOut(out, "info", "Recherche de « " + nom + " » …");
+  try {
+    const res = await apiFetch(base + "/api/clients/recherche/nom?nom=" + encodeURIComponent(nom));
+    const text = await res.text();
+    if (!res.ok) { setOut(out, "err", "HTTP " + res.status + " (" + res.statusText + ")\n" + text); return; }
+    const list = JSON.parse(text);
+    if (!list.length) { setOut(out, "info", "Aucun client « " + nom + " ». Créez-le dans la section 1 (Créer un client)."); return; }
+    out.className = "info";
+    out.textContent = list.length + " résultat(s) : choisissez le bon client (attention aux homonymes : le numéro nous le dit).";
+    const wrap = document.createElement("div");
+    list.forEach(c => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;justify-content:space-between;gap:10px;align-items:center;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px 10px;margin-top:6px";
+      row.innerHTML = `<div><b>${c.nom}</b> — ${c.telephone}${c.ville ? " — " + c.ville + (c.quartier ? " (" + c.quartier + ")" : "") : ""}</div>`;
+      const b = document.createElement("button");
+      b.textContent = "Choisir";
+      b.onclick = () => choisirClient(c);
+      row.appendChild(b);
+      wrap.appendChild(row);
+    });
+    out.appendChild(wrap);
+  } catch (e) {
+    setOut(out, "err", "Erreur réseau : " + e.message);
+  }
+}
+
+function choisirClient(c){
+  state.choisi = c;
+  document.querySelectorAll("[data-clients]").forEach(sel => sel.value = c.idclient);
+  const b = document.getElementById("client-banner");
+  b.innerHTML = "Client retenu : <b>" + c.nom + "</b> · " + c.telephone +
+    " — il sera utilisé automatiquement pour la création de commande. " +
+    '<button onclick="deselectionnerClient()" style="margin-left:8px">Changer</button>';
+}
+function deselectionnerClient(){
+  state.choisi = null;
+  document.querySelectorAll("[data-clients]").forEach(sel => sel.value = "");
+  document.getElementById("client-banner").innerHTML = "Aucun client retenu. Cherchez-le par nom dans la section 1 et cliquez sur «&nbsp;Choisir&nbsp;».";
+}
+
+// ---------- Chargement des références ----------
+async function loadData(){
+  try {
+    const [c, t] = await Promise.all([
+      fetch(base + "/api/clients").then(r => r.json()),
+      fetch(base + "/api/tarifs/actifs").then(r => r.json())
+    ]);
+    state.clients = c; state.tarifs = t;
+    fillClientSelects();
+    document.getElementById("cc-lignes").innerHTML = "";
+    ligneCounter = 0;
+    addLigneRow();
+  } catch (e) { console.warn("Chargement des références impossible", e); }
+}
+loadData();
+</script>
+</body>
+</html>
