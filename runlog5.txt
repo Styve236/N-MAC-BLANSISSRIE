@@ -1,0 +1,623 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.pressing:pressing-api >----------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.1.1-SNAPSHOT:run (default-cli) > test-compile @ pressing-api >>>
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ pressing-api ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ pressing-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ pressing-api ---
+[INFO] skip non existing resourceDirectory C:\Users\steve authentique\Desktop\pressing-api\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ pressing-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] 
+[INFO] <<< spring-boot:4.1.1-SNAPSHOT:run (default-cli) < test-compile @ pressing-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.1.1-SNAPSHOT:run (default-cli) @ pressing-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::       (v4.1.1-SNAPSHOT)
+
+2026-09-02T21:18:11.981+01:00  INFO 7840 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Starting PressingApiApplication using Java 25.0.3 with PID 7840 (C:\Users\steve authentique\Desktop\pressing-api\target\classes started by steve authentique in C:\Users\steve authentique\Desktop\pressing-api)
+2026-09-02T21:18:11.993+01:00  INFO 7840 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T21:18:15.080+01:00  INFO 7840 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T21:18:15.382+01:00  INFO 7840 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 269 ms. Found 13 JPA repository interfaces.
+2026-09-02T21:18:17.576+01:00  INFO 7840 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-09-02T21:18:17.626+01:00  INFO 7840 --- [pressing-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T21:18:17.627+01:00  INFO 7840 --- [pressing-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-02T21:18:17.825+01:00  INFO 7840 --- [pressing-api] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 5608 ms
+2026-09-02T21:18:18.396+01:00  INFO 7840 --- [pressing-api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-09-02T21:18:18.592+01:00  INFO 7840 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-09-02T21:18:20.198+01:00  INFO 7840 --- [pressing-api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T21:18:20.311+01:00  INFO 7840 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-02T21:18:21.651+01:00  INFO 7840 --- [pressing-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@2c3679e5
+2026-09-02T21:18:21.655+01:00  INFO 7840 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-02T21:18:21.942+01:00  INFO 7840 --- [pressing-api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/pressing_db?createDatabaseIfNotExist=true]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.4.3
+	Default catalog/schema: pressing_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-09-02T21:18:26.674+01:00  INFO 7840 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    create table refresh_token (
+        id bigint not null auto_increment,
+        created_at datetime(6),
+        expires_at datetime(6) not null,
+        revoked bit not null,
+        token varchar(512) not null,
+        user_id bigint not null,
+        primary key (id)
+    ) engine=InnoDB
+Hibernate: 
+    alter table refresh_token 
+       drop index UKr4k4edos30bx9neoq81mdvwph
+Hibernate: 
+    alter table refresh_token 
+       add constraint UKr4k4edos30bx9neoq81mdvwph unique (token)
+2026-09-02T21:18:27.604+01:00  INFO 7840 --- [pressing-api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T21:18:27.900+01:00  INFO 7840 --- [pressing-api] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-02T21:18:28.862+01:00  INFO 7840 --- [pressing-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name utilisateurDetailsService
+2026-09-02T21:18:33.169+01:00  WARN 7840 --- [pressing-api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-02T21:18:34.504+01:00  INFO 7840 --- [pressing-api] [           main] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-09-02T21:18:35.727+01:00  INFO 7840 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-09-02T21:18:35.747+01:00  INFO 7840 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Started PressingApiApplication in 25.457 seconds (process running for 27.203)
+Hibernate: 
+    select
+        u1_0.idusers 
+    from
+        users u1_0 
+    where
+        u1_0.email=? 
+    limit
+        ?
+2026-09-02T21:18:38.544+01:00  INFO 7840 --- [pressing-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-02T21:18:38.544+01:00  INFO 7840 --- [pressing-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-02T21:18:38.548+01:00  INFO 7840 --- [pressing-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        rt1_0.id,
+        rt1_0.created_at,
+        rt1_0.expires_at,
+        rt1_0.revoked,
+        rt1_0.token,
+        rt1_0.user_id 
+    from
+        refresh_token rt1_0 
+    where
+        rt1_0.token=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        rt1_0.id,
+        rt1_0.created_at,
+        rt1_0.expires_at,
+        rt1_0.revoked,
+        rt1_0.token,
+        rt1_0.user_id 
+    from
+        refresh_token rt1_0 
+    where
+        rt1_0.token=?
+Hibernate: 
+    update
+        refresh_token 
+    set
+        created_at=?,
+        expires_at=?,
+        revoked=?,
+        token=?,
+        user_id=? 
+    where
+        id=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        c1_0.livreur_id,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    order by
+        c1_0.date_creation desc 
+    limit
+        ?, ?
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0
+2026-09-02T21:19:43.974+01:00  WARN 7840 --- [pressing-api] [nio-8080-exec-3] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+Hibernate: 
+    select
+        l1_0.commande_id,
+        l1_0.idligne,
+        l1_0.description,
+        l1_0.montant,
+        l1_0.poids,
+        l1_0.quantite,
+        t1_0.idtarif,
+        t1_0.actif,
+        t1_0.nom,
+        t1_0.prixauklo,
+        t1_0.prixunitaire,
+        t1_0.type_nettoyage,
+        t1_0.typevetement,
+        l1_0.type_nettoyage,
+        v1_0.idvetement,
+        v1_0.libelle,
+        v1_0.quantite_stock,
+        v1_0.typedevetement 
+    from
+        lignecommande l1_0 
+    left join
+        tarif t1_0 
+            on t1_0.idtarif=l1_0.tarif_id 
+    left join
+        vetements v1_0 
+            on v1_0.idvetement=l1_0.vetement_id 
+    where
+        l1_0.commande_id=?
+Hibernate: 
+    select
+        p1_0.ligne_commande_id,
+        p1_0.idphoto,
+        p1_0.date_time,
+        p1_0.typephoto,
+        p1_0.url 
+    from
+        photo p1_0 
+    where
+        p1_0.ligne_commande_id=?
+Hibernate: 
+    select
+        p1_0.commande_id,
+        p1_0.idpaiement,
+        p1_0.date_paiement,
+        p1_0.montant,
+        p1_0.moyen_paiement,
+        p1_0.reference_transaction,
+        p1_0.type_paiement 
+    from
+        paiement p1_0 
+    where
+        p1_0.commande_id=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    order by
+        c1_0.nom 
+    limit
+        ?, ?
+Hibernate: 
+    select
+        count(c1_0.idclient) 
+    from
+        client c1_0
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        p1_0.idpaiement,
+        p1_0.commande_id,
+        p1_0.date_paiement,
+        p1_0.montant,
+        p1_0.moyen_paiement,
+        p1_0.reference_transaction,
+        p1_0.type_paiement 
+    from
+        paiement p1_0 
+    order by
+        p1_0.date_paiement desc,
+        p1_0.date_paiement desc 
+    limit
+        ?
+Hibernate: 
+    select
+        count(p1_0.idpaiement) 
+    from
+        paiement p1_0
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c2_0.idclient,
+        c2_0.nom,
+        c2_0.points_fidelites,
+        c2_0.quartier,
+        c2_0.telephone,
+        c2_0.ville,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        l1_0.idusers,
+        l1_0.actif,
+        l1_0.date_creation,
+        l1_0.email,
+        l1_0.nom,
+        l1_0.password,
+        l1_0.role,
+        l1_0.tels,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    join
+        client c2_0 
+            on c2_0.idclient=c1_0.client_id 
+    left join
+        users l1_0 
+            on l1_0.idusers=c1_0.livreur_id 
+    where
+        c1_0.idcommande=?
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c2_0.idclient,
+        c2_0.nom,
+        c2_0.points_fidelites,
+        c2_0.quartier,
+        c2_0.telephone,
+        c2_0.ville,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        l1_0.idusers,
+        l1_0.actif,
+        l1_0.date_creation,
+        l1_0.email,
+        l1_0.nom,
+        l1_0.password,
+        l1_0.role,
+        l1_0.tels,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    join
+        client c2_0 
+            on c2_0.idclient=c1_0.client_id 
+    left join
+        users l1_0 
+            on l1_0.idusers=c1_0.livreur_id 
+    where
+        c1_0.idcommande=?
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c2_0.idclient,
+        c2_0.nom,
+        c2_0.points_fidelites,
+        c2_0.quartier,
+        c2_0.telephone,
+        c2_0.ville,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        l1_0.idusers,
+        l1_0.actif,
+        l1_0.date_creation,
+        l1_0.email,
+        l1_0.nom,
+        l1_0.password,
+        l1_0.role,
+        l1_0.tels,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    join
+        client c2_0 
+            on c2_0.idclient=c1_0.client_id 
+    left join
+        users l1_0 
+            on l1_0.idusers=c1_0.livreur_id 
+    where
+        c1_0.idcommande=?
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c2_0.idclient,
+        c2_0.nom,
+        c2_0.points_fidelites,
+        c2_0.quartier,
+        c2_0.telephone,
+        c2_0.ville,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        l1_0.idusers,
+        l1_0.actif,
+        l1_0.date_creation,
+        l1_0.email,
+        l1_0.nom,
+        l1_0.password,
+        l1_0.role,
+        l1_0.tels,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    join
+        client c2_0 
+            on c2_0.idclient=c1_0.client_id 
+    left join
+        users l1_0 
+            on l1_0.idusers=c1_0.livreur_id 
+    where
+        c1_0.idcommande=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        t1_0.idtarif,
+        t1_0.actif,
+        t1_0.nom,
+        t1_0.prixauklo,
+        t1_0.prixunitaire,
+        t1_0.type_nettoyage,
+        t1_0.typevetement 
+    from
+        tarif t1_0 
+    order by
+        t1_0.nom 
+    limit
+        ?, ?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)

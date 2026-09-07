@@ -10,6 +10,8 @@ import com.pressing.pressing.api.commande.Commande;
 import com.pressing.pressing.api.commande.CommandeRepository;
 import com.pressing.pressing.api.sms.NotificationSmsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,17 @@ public class PaiementService {
     private final CommandeRepository commandeRepository;
     private final ClientRepository clientRepository;
     private final NotificationSmsService notificationSmsService;
+    private final com.pressing.pressing.api.fidelite.FideliteService fideliteService;
+
+    public Page<PaiementResponseDTO> listerTous(Long clientId, Pageable pageable) {
+        Page<Paiement> page;
+        if (clientId != null) {
+            page = paiementRepository.findByClientIdclient(clientId, pageable);
+        } else {
+            page = paiementRepository.findAllByOrderByDatePaiementDesc(pageable);
+        }
+        return page.map(this::toDTO);
+    }
 
     public BigDecimal getCAduJour(LocalDate date){
         return paiementRepository.sumMontantByDate(date);
@@ -48,9 +61,22 @@ public class PaiementService {
             throw new IllegalArgumentException("Le montant dépasse le reste à payer (" + reste + " FCFA)");
         }
 
+        // Classification automatique du paiement : ACOMPTE / SOLDE / INTEGRAL
+        BigDecimal avant = commande.getMontantPaye();
+        BigDecimal apres = commande.getMontantPaye().add(dto.getMontant());
+        TypePaiement typePaiement;
+        if (avant.compareTo(BigDecimal.ZERO) == 0 && apres.compareTo(commande.getMontantTotal()) >= 0) {
+            typePaiement = TypePaiement.INTEGRAL;
+        } else if (apres.compareTo(commande.getMontantTotal()) >= 0) {
+            typePaiement = TypePaiement.SOLDE;
+        } else {
+            typePaiement = TypePaiement.ACOMPTE;
+        }
+
         Paiement paiement = Paiement.builder()
                 .montant(dto.getMontant())
                 .moyenPaiement(dto.getMoyenPaiement())
+                .typePaiement(typePaiement)
                 .referenceTransaction(dto.getReferenceTransaction())
                 .datePaiement(LocalDateTime.now())
                 .build();
@@ -59,6 +85,12 @@ public class PaiementService {
         Commande commandeMaj = commandeRepository.save(commande);
 
         notificationSmsService.envoyerPaiementRecu(commandeMaj, paiement.getMontant());
+
+        fideliteService.crediterPoints(
+                commande.getClient().getIdclient(),
+                commande.getIdcommande(),
+                paiement.getMontant());
+
         return toDTO(paiement);
     }
 
@@ -91,13 +123,14 @@ public class PaiementService {
         Commande commande = commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new RessourceNotFoundException("Commande introuvable avec l'id : " + commandeId));
 
+        BigDecimal remise = commande.getRemise() != null ? commande.getRemise() : BigDecimal.ZERO;
         StatutPaiementDTO dto = new StatutPaiementDTO();
         dto.setIdcommande(commande.getIdcommande());
         dto.setNumeroTicket(commande.getNumeroTicket());
         dto.setMontantTotal(commande.getMontantTotal());
         dto.setMontantPaye(commande.getMontantPaye());
-        dto.setResteAPayer(commande.getMontantTotal().subtract(commande.getMontantPaye()));
-        dto.setPayee(commande.isPayee());
+        dto.setResteAPayer(commande.getMontantTotal().subtract(remise).subtract(commande.getMontantPaye()));
+        dto.setPayee(commande.getMontantPaye().compareTo(commande.getMontantTotal().subtract(remise)) >= 0);
         dto.setPaiements(commande.getPaiements().stream()
                 .sorted(Comparator.comparing(Paiement::getDatePaiement))
                 .map(this::toDTO)
@@ -110,6 +143,7 @@ public class PaiementService {
         dto.setIdpaiement(paiement.getIdpaiement());
         dto.setMontant(paiement.getMontant());
         dto.setMoyenPaiement(paiement.getMoyenPaiement() != null ? paiement.getMoyenPaiement().name() : null);
+        dto.setTypePaiement(paiement.getTypePaiement() != null ? paiement.getTypePaiement().name() : null);
         dto.setReferenceTransaction(paiement.getReferenceTransaction());
         dto.setDatePaiement(paiement.getDatePaiement());
         if (paiement.getCommande() != null) {

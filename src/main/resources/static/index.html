@@ -209,6 +209,76 @@ const CASES = [
   ]},
   { sec:"9. Statistiques", items:[
     { label:"Tableau de bord (CA, commandes, top clients, impayés…)", m:"GET", url:"/api/statistiques" }
+  ]},
+  { sec:"10. Clôture de caisse", items:[
+    { label:"Rapport du jour (CA par moyen de paiement)", m:"GET", url:"/api/caisse/rapport", q:[{n:"date",lab:"Date (laisser vide = aujourd'hui)"}] },
+    { label:"Clôturer la caisse (comptage + écart)", m:"POST", url:"/api/caisse/cloturer", bodyType:"object", fields:[
+      {k:"date",lab:"Date (vide = aujourd'hui)"},
+      {k:"montantEnCaisse",lab:"Montant compté en caisse",type:"number",req:true},
+      {k:"observations",lab:"Observations"}] },
+    { label:"Historique des clôtures", m:"GET", url:"/api/caisse/clotures" },
+    { label:"Ticket de caisse imprimable", m:"GET", url:"/api/caisse/ticket", q:[{n:"date",lab:"Date (laisser vide = aujourd'hui)"}], open:true }
+  ]},
+{ sec:"11. Inventaire / stock", items:[
+    { label:"Catalogue des vêtements (stock)", m:"GET", url:"/api/inventaire/vetements" },
+    { label:"Ajouter un vêtement au catalogue", m:"POST", url:"/api/inventaire/vetements", fields:[
+      {k:"libelle",lab:"Libellé",req:true},
+      {k:"typedevetement",lab:"Type"},
+      {k:"quantiteStock",lab:"Quantité en stock",type:"number"}] },
+    { label:"Modifier un vêtement", m:"PUT", url:"/api/inventaire/vetements/{id}", path:[{n:"id",lab:"Id",type:"number"}], fields:[
+      {k:"libelle",lab:"Libellé"},
+      {k:"typedevetement",lab:"Type"},
+      {k:"quantiteStock",lab:"Quantité en stock",type:"number"}] },
+    { label:"Supprimer un vêtement", m:"DELETE", url:"/api/inventaire/vetements/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Bons d'inventaire (réceptions / sorties)", m:"GET", url:"/api/inventaire/bons" },
+    { label:"Détail d'un bon", m:"GET", url:"/api/inventaire/bons/{id}", path:[{n:"id",lab:"Id",type:"number"}] },
+    { label:"Créer un bon (entrée + / sortie -)", m:"POST", url:"/api/inventaire/bons", fields:[
+      {k:"date",lab:"Date (vide = aujourd'hui)"},
+      {k:"observations",lab:"Observations"},
+      {k:"lignes",lab:'Lignes JSON ex: [{"vetementId":1,"quantite":5,"etat":"NEUF"}]',type:"json",req:true}] }
+  ]},
+  { sec:"12. Livraison à domicile", items:[
+    { label:"Toutes les livraisons (ADMIN/RECEPTIONNISTE)", m:"GET", url:"/api/livraisons", q:[{n:"statut",lab:"Statut (A_LIVRER/EN_COURS/LIVREE/ECHEC)"}] },
+    { label:"Mes livraisons (LIVREUR)", m:"GET", url:"/api/livraisons/mes-livraisons", q:[{n:"statut",lab:"Statut (optionnel)"}] },
+    { label:"Assigner une livraison", m:"POST", url:"/api/livraisons/{id}/assigner", path:[{n:"id",lab:"Id commande",type:"number"}], fields:[
+      {k:"adresseLivraison",lab:"Adresse complète",req:true},
+      {k:"livreurId",lab:"Id livreur",type:"number",req:true},
+      {k:"dateLivraisonPrevue",lab:"Date/heure prévue (ex: 2026-09-02T14:00:00)"},
+      {k:"fraisLivraison",lab:"Frais livraison",type:"number"}] },
+    { label:"Changer statut livraison", m:"PATCH", url:"/api/livraisons/{id}/statut", path:[{n:"id",lab:"Id commande",type:"number"}], fields:[
+      {k:"statut",lab:"Nouveau statut (A_LIVRER/EN_COURS/LIVREE/ECHEC)",req:true}] }
+  ]},
+  { sec:"13. Fidélité / points", items:[
+    { label:"Solde points d'un client", m:"GET", url:"/api/fidelite/solde/{clientId}", path:[{n:"clientId",lab:"Id client",type:"number"}] },
+    { label:"Historique des points", m:"GET", url:"/api/fidelite/historique/{clientId}", path:[{n:"clientId",lab:"Id client",type:"number"}] },
+    { label:"Utiliser des points (remise sur commande)", m:"POST", url:"/api/fidelite/utiliser", fields:[
+      {k:"clientId",lab:"Id client",type:"number",req:true},
+      {k:"commandeId",lab:"Id commande",type:"number",req:true},
+      {k:"nbPoints",lab:"Points à utiliser",type:"number",req:true}] },
+      { label:"Créditer manuellement des points (ADMIN)", m:"POST", url:"/api/fidelite/crediter", fields:[
+      {k:"clientId",lab:"Id client",type:"number",req:true},
+      {k:"commandeId",lab:"Id commande (optionnel)",type:"number"},
+      {k:"nbPoints",lab:"Points à créditer",type:"number",req:true}] }
+  ]},
+  { sec:"14. Exports PDF / CSV", items:[
+    { label:"Export commandes PDF", m:"GET", url:"/api/exports/commandes", fields:[
+      {k:"debut",lab:"Date début (YYYY-MM-DD)"},
+      {k:"fin",lab:"Date fin (YYYY-MM-DD)"}], isDownload:true },
+    { label:"Export commandes CSV", m:"GET", url:"/api/exports/commandes/csv", fields:[
+      {k:"debut",lab:"Date début (YYYY-MM-DD)"},
+      {k:"fin",lab:"Date fin (YYYY-MM-DD)"}], isDownload:true },
+    { label:"Export paiements PDF", m:"GET", url:"/api/exports/paiements", fields:[
+      {k:"debut",lab:"Date début (YYYY-MM-DD)",req:true},
+      {k:"fin",lab:"Date fin (YYYY-MM-DD)",req:true}], isDownload:true },
+    { label:"Export paiements CSV", m:"GET", url:"/api/exports/paiements/csv", fields:[
+      {k:"debut",lab:"Date début (YYYY-MM-DD)",req:true},
+      {k:"fin",lab:"Date fin (YYYY-MM-DD)",req:true}], isDownload:true },
+    { label:"Export caisse PDF", m:"GET", url:"/api/exports/caisse", isDownload:true },
+    { label:"Export caisse CSV", m:"GET", url:"/api/exports/caisse/csv", isDownload:true },
+    { label:"Export inventaire PDF", m:"GET", url:"/api/exports/inventaire", isDownload:true },
+    { label:"Export inventaire CSV", m:"GET", url:"/api/exports/inventaire/csv", isDownload:true },
+    { label:"Export fidélité PDF", m:"GET", url:"/api/exports/fidelite", isDownload:true },
+    { label:"Export fidélité CSV", m:"GET", url:"/api/exports/fidelite/csv", isDownload:true }
   ]}
 ];
 
@@ -264,7 +334,7 @@ function card(it, i){
       if (f.cl) el.dataset.clients = "1";
     } else {
       el = document.createElement("input");
-      el.type = f.type || "text";
+      el.type = (f.type === "json" || f.type === "number" || f.type === "password") ? (f.type === "json" ? "text" : f.type) : (f.type || "text");
       el.placeholder = f.ph || "";
     }
     el.dataset.f = f.k;
@@ -300,7 +370,13 @@ function card(it, i){
     ob.textContent = "Ouvrir dans un onglet";
     ob.onclick = () => {
       let u = base + it.url;
-      for (const k in ids) if (ids[k] && !k.startsWith("q_")) u = u.replace("{" + k + "}", encodeURIComponent(ids[k].value));
+      const oq = new URLSearchParams();
+      for (const k in ids) if (ids[k] && ids[k].value) {
+        if (k.startsWith("q_")) oq.append(k.slice(2), ids[k].value);
+        else u = u.replace("{" + k + "}", encodeURIComponent(ids[k].value));
+      }
+      const oqs = oq.toString();
+      if (oqs) u += (u.includes("?") ? "&" : "?") + oqs;
       window.open(u, "_blank");
     };
     actions.appendChild(ob);
@@ -330,7 +406,8 @@ async function run(div, it, ids, out){
     const el = ids[f.k];
     if (!el || el.value === "") continue;
     hasBody = true;
-    body[f.k] = (f.type === "number") ? Number(el.value) : (f.k === "actif" ? el.value === "true" : el.value);
+    if (f.type === "json") { try { body[f.k] = JSON.parse(el.value); } catch(e) { setOut(out, "err", "JSON invalide pour « " + f.label + " »"); return; } }
+    else body[f.k] = (f.type === "number") ? Number(el.value) : (f.k === "actif" ? el.value === "true" : el.value);
   }
   for (const f of (it.path||[])) {
     const el = ids[f.n];
@@ -346,8 +423,14 @@ async function run(div, it, ids, out){
     if (body.type) formData.append("type", body.type);
   }
 
-  if (!hasBody && it.fields && it.fields.length && !it.upload) {
+  if (!hasBody && it.fields && it.fields.length && !it.upload && !it.isDownload) {
     setOut(out, "err", "Remplissez au moins un champ du corps.");
+    return;
+  }
+
+  if (it.isDownload) {
+    window.open(url, "_blank");
+    setOut(out, "", "Téléchargement lancé : " + it.m + " " + url);
     return;
   }
 
@@ -405,6 +488,13 @@ function buildCommandeCard(){
     <div style="margin-top:6px">
       <label>Date de retrait prévue</label>
       <input type="datetime-local" id="cc-date">
+    </div>
+    <div style="margin-top:6px">
+      <label>Acompte versé maintenant (FCFA, optionnel — sera déduit du reste à payer)</label>
+      <input type="number" min="0" step="0.25" id="cc-acompte" placeholder="0 = aucun" style="width:130px">
+      <select id="cc-moyen-acompte" style="width:200px;margin-left:8px">
+        <option>ESPECES</option><option>ORANGE_MONEY</option><option>MTN_MONEY</option>
+      </select>
     </div>
     <div style="margin-top:10px"><label>Lignes (traitement, unité, prix auto, photo possible)</label></div>
     <table id="cc-lignes" style="width:100%"></table>
@@ -532,9 +622,14 @@ async function creerCommande(btn){
   const body = { clientId: Number(clientId), lignes };
   const d = document.getElementById("cc-date").value;
   if (d) body.dateRetraitPrevue = d + ":00";
+  const acomp = parseFloat(document.getElementById("cc-acompte").value);
+  if (acomp > 0) {
+    body.acompte = acomp;
+    body.moyenAcompte = document.getElementById("cc-moyen-acompte").value;
+  }
   setOut(out, "info", "POST " + base + "/api/commandes  …");
   try {
-    const res = await fetch(base + "/api/commandes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await apiFetch(base + "/api/commandes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const text = await res.text();
     let c; try { c = JSON.stringify(JSON.parse(text), null, 2); } catch { c = text; }
     setOut(out, res.ok ? "" : "err", "POST " + base + "/api/commandes\nHTTP " + res.status + (res.statusText ? " (" + res.statusText + ")" : "") + (text ? "\n\n" + c : "\n\n(vide)"));
@@ -635,17 +730,18 @@ function deselectionnerClient(){
 // ---------- Chargement des références ----------
 async function loadData(){
   try {
-    const [c, t] = await Promise.all([
-      fetch(base + "/api/clients").then(r => r.json()),
-      fetch(base + "/api/tarifs/actifs").then(r => r.json())
-    ]);
-    state.clients = c; state.tarifs = t;
+    const rc = await apiFetch(base + "/api/clients");
+    const rt = await apiFetch(base + "/api/tarifs/actifs");
+    if (!rc.ok || !rt.ok) { throw new Error("non connecté"); }
+    state.clients = await rc.json();
+    state.tarifs = await rt.json();
     fillClientSelects();
     document.getElementById("cc-lignes").innerHTML = "";
     ligneCounter = 0;
     addLigneRow();
-  } catch (e) { console.warn("Chargement des références impossible", e); }
+  } catch (e) { console.warn("Chargement des références impossible (se connecter en section 0)."); }
 }
+initSession();
 loadData();
 </script>
 </body>

@@ -18,6 +18,7 @@ public class RecuDTO {
     private LocalDateTime dateRecuperationPrevue;
     private BigDecimal poidsTotal;
     private BigDecimal montantTotal;
+    private BigDecimal remise;
     private BigDecimal montantPaye;
     private BigDecimal resteAPayer;
     private List<LigneRecuDTO> lignes;

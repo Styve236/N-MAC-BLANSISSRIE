@@ -1,13 +1,18 @@
 package com.pressing.pressing.api.commande;
 
+import com.pressing.pressing.api.Paiement.MoyenPaiement;
+import com.pressing.pressing.api.Paiement.PaiementService;
 import com.pressing.pressing.api.client.Client;
 import com.pressing.pressing.api.client.ClientRepository;
 import com.pressing.pressing.api.common.dto.CommandeDTO;
 import com.pressing.pressing.api.common.dto.CommandeRequestDTO;
 import com.pressing.pressing.api.common.dto.LigneCommandeDTO;
+import com.pressing.pressing.api.common.dto.PaiementDTO;
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import com.pressing.pressing.api.sms.NotificationSmsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +31,7 @@ public class CommandeService
     private final ClientRepository clientRepository;
     private final TarifRepository tarifRepository;
     private final NotificationSmsService notificationSmsService;
+    private final PaiementService paiementService;
 
     public Commande creerCommande(CommandeRequestDTO dto) {
         if (dto.getClientId() == null) {
@@ -58,6 +64,16 @@ public class CommandeService
         commande.setPoidsTotal(calculerPoidsTotal(commande.getLignes()));
 
         Commande commandeEnregistree = commandeRepository.save(commande);
+
+        // Acompte versé à la prise de la commande (optionnel)
+        if (dto.getAcompte() != null && dto.getAcompte().compareTo(BigDecimal.ZERO) > 0) {
+            PaiementDTO acompte = new PaiementDTO();
+            acompte.setMontant(dto.getAcompte());
+            acompte.setMoyenPaiement(dto.getMoyenAcompte() != null ? dto.getMoyenAcompte() : MoyenPaiement.ESPECES);
+            paiementService.ajouter(commandeEnregistree.getIdcommande(), acompte);
+            commandeEnregistree = commandeRepository.findById(commandeEnregistree.getIdcommande()).orElse(commandeEnregistree);
+        }
+
         notificationSmsService.envoyerConfirmationCommande(commandeEnregistree);
         return commandeEnregistree;
     }
@@ -79,8 +95,14 @@ public class CommandeService
         // Sous-total de la ligne : prix au kilo × poids  OU  prix unitaire × quantité
         BigDecimal montantLigne;
         if (poidsFourni) {
+            if (tarif.getPrixauklo() == null) {
+                throw new IllegalArgumentException("Le tarif « " + (tarif.getNom() != null ? tarif.getNom() : tarif.getTypevetement()) + " » n'a pas de prix au kilo");
+            }
             montantLigne = tarif.getPrixauklo().multiply(dto.getPoids());
         } else {
+            if (tarif.getPrixunitaire() == null) {
+                throw new IllegalArgumentException("Le tarif « " + (tarif.getNom() != null ? tarif.getNom() : tarif.getTypevetement()) + " » n'a pas de prix à la pièce");
+            }
             montantLigne = tarif.getPrixunitaire().multiply(BigDecimal.valueOf(dto.getQuantite()));
         }
 
@@ -109,7 +131,8 @@ public class CommandeService
     public BigDecimal getResteAPayer(Long commandeId){
         Commande cmd = commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new IllegalArgumentException("Commande introuvable avec l'id: " + commandeId));
-        return cmd.getMontantTotal().subtract(cmd.getMontantPaye());
+        BigDecimal remise = cmd.getRemise() != null ? cmd.getRemise() : BigDecimal.ZERO;
+        return cmd.getMontantTotal().subtract(remise).subtract(cmd.getMontantPaye());
     }
 
     // HISTORIQUE des commandes d'un client, trié de la plus récente à la plus ancienne
@@ -144,6 +167,23 @@ public class CommandeService
                 .filter(c -> dateFin == null || (c.getDateCreation() != null && !c.getDateCreation().toLocalDate().isAfter(dateFin)))
                 .sorted(Comparator.comparing(Commande::getDateCreation).reversed())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Commande> listerPaginer(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
+        if (clientId != null && statut != null) {
+            return commandeRepository.findByClientIdclientAndStatut(clientId, statut, pageable);
+        }
+        if (clientId != null) {
+            return commandeRepository.findByClientIdclient(clientId, pageable);
+        }
+        if (statut != null) {
+            return commandeRepository.findByStatut(statut, pageable);
+        }
+        if (dateDebut != null && dateFin != null) {
+            return commandeRepository.findByDateCreationBetween(dateDebut.atStartOfDay(), dateFin.atTime(23, 59, 59), pageable);
+        }
+        return commandeRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -190,10 +230,12 @@ public class CommandeService
         dto.setPoidsTotal(c.getPoidsTotal());
         dto.setMontantTotal(c.getMontantTotal());
         dto.setMontantPaye(c.getMontantPaye());
+        dto.setRemise(c.getRemise());
+        BigDecimal remise = c.getRemise() != null ? c.getRemise() : BigDecimal.ZERO;
         BigDecimal paye = c.getMontantPaye() != null ? c.getMontantPaye() : BigDecimal.ZERO;
         BigDecimal total = c.getMontantTotal() != null ? c.getMontantTotal() : BigDecimal.ZERO;
-        dto.setResteAPayer(total.subtract(paye));
-        dto.setPayee(paye.compareTo(total) >= 0);
+        dto.setResteAPayer(total.subtract(remise).subtract(paye));
+        dto.setPayee(paye.compareTo(total.subtract(remise)) >= 0);
         return dto;
     }
 }

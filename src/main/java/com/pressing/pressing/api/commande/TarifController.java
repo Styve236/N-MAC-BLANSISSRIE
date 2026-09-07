@@ -1,6 +1,9 @@
 package com.pressing.pressing.api.commande;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +25,10 @@ public class TarifController {
     }
 
     @GetMapping
-    public List<Tarif> lister(@RequestParam(required = false) TypeNettoyage typeNettoyage) {
-        return tarifService.lister(typeNettoyage);
+    public Page<Tarif> lister(
+            @RequestParam(required = false) TypeNettoyage typeNettoyage,
+            @PageableDefault(size = 20, sort = "nom") Pageable pageable) {
+        return tarifService.listerPaginer(typeNettoyage, pageable);
     }
 
     @GetMapping("/actifs")

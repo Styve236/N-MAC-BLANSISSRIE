@@ -1,7 +1,9 @@
 package com.pressing.pressing.api.commande;
 
 import com.pressing.pressing.api.Paiement.Paiement;
+import com.pressing.pressing.api.Users.Users;
 import com.pressing.pressing.api.client.Client;
+import com.pressing.pressing.api.livraison.StatutLivraison;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,6 +43,8 @@ public class Commande {
     private BigDecimal montantTotal;
     @Builder.Default
     private BigDecimal montantPaye = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal remise = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -49,6 +53,22 @@ public class Commande {
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Paiement> paiements = new ArrayList<>();
+
+    // ---- Livraison à domicile ----
+    @Column(length = 500)
+    private String adresseLivraison;
+
+    private BigDecimal fraisLivraison;
+    private LocalDateTime dateLivraisonPrevue;
+    private LocalDateTime dateLivraisonReelle;
+
+    @ManyToOne
+    @JoinColumn(name = "livreur_id")
+    private Users livreur;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private StatutLivraison statutLivraison = StatutLivraison.A_LIVRER;
 
     // methode pour ajouter un paiement
     public void addpaiement(Paiement p){
@@ -62,11 +82,11 @@ public class Commande {
 
     // Methode pour le boolean afin de savoir s'il a un solde
     public boolean aUnsolde(){
-        return this.montantPaye.compareTo(this.montantTotal) < 0;
+        return this.montantPaye.compareTo(this.montantTotal.subtract(this.remise != null ? this.remise : BigDecimal.ZERO)) < 0;
     }
 
     // methode pour savoir si une commande est entierement payee
     public boolean isPayee(){
-        return this.montantPaye.compareTo(this.montantTotal) >= 0;
+        return this.montantPaye.compareTo(this.montantTotal.subtract(this.remise != null ? this.remise : BigDecimal.ZERO)) >= 0;
     }
 }

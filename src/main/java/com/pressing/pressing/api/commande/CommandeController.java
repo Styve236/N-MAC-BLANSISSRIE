@@ -6,6 +6,9 @@ import com.pressing.pressing.api.common.dto.CommandeRequestDTO;
 import com.pressing.pressing.api.common.dto.CommandeDTO;
 import com.pressing.pressing.api.common.dto.PaiementResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,12 +32,13 @@ public class CommandeController {
     }
 
     @GetMapping
-    public List<Commande> lister(
+    public Page<Commande> lister(
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) StatutCommande statut,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin) {
-        return commandeService.lister(clientId, statut, dateDebut, dateFin);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @PageableDefault(size = 20, sort = "dateCreation", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        return commandeService.listerPaginer(clientId, statut, dateDebut, dateFin, pageable);
     }
 
     @GetMapping("/{id}")
@@ -48,7 +52,6 @@ public class CommandeController {
         return commandeService.changerStatut(id, body.get("statut"));
     }
 
-    // HISTORIQUE des commandes d'un client
     @GetMapping("/client/{clientId}")
     public List<CommandeDTO> historiqueParClient(@PathVariable Long clientId){
         return commandeService.getHistoriqueParClient(clientId);

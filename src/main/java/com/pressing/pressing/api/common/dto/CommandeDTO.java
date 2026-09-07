@@ -17,6 +17,7 @@ public class CommandeDTO {
     private BigDecimal poidsTotal;
     private BigDecimal montantTotal;
     private BigDecimal montantPaye;
+    private BigDecimal remise;
     private BigDecimal resteAPayer;
     private boolean payee;
 }

@@ -28,6 +28,9 @@ public class Paiement {
     @Column(nullable = false)
     private MoyenPaiement moyenPaiement;
 
+    @Enumerated(EnumType.STRING)
+    private TypePaiement typePaiement;
+
     private LocalDateTime datePaiement;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -10,6 +10,7 @@ public class PaiementResponseDTO {
     private Long idpaiement;
     private BigDecimal montant;
     private String moyenPaiement;
+    private String typePaiement;
     private String referenceTransaction;
     private LocalDateTime datePaiement;
     private Long idcommande;

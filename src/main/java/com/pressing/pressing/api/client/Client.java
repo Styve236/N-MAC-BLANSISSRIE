@@ -36,7 +36,7 @@ public class Client {
     private List<Commande> commandes =  new ArrayList<>();
 
     @Builder.Default
-    private int points_fidelites = 0;
+    private Integer points_fidelites = 0;
 
 
 }

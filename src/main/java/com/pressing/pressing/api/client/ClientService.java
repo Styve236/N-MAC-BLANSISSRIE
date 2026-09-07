@@ -4,6 +4,8 @@ import com.pressing.pressing.api.common.dto.ClientDTO;
 import com.pressing.pressing.api.common.exception.DonneeDejaExistanteException;
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +15,6 @@ import java.util.List;
 public class ClientService {
     private final ClientRepository clientRepository;
 
-    // CREER un client
     public ClientDTO creerClient(ClientDTO dto) {
         if (dto.getNom() == null || dto.getNom().isBlank()) {
             throw new IllegalArgumentException("Le nom du client est obligatoire");
@@ -36,26 +37,30 @@ public class ClientService {
         return toDTO(clientRepository.save(client));
     }
 
-    // CONSULTER tous les clients
     public List<ClientDTO> listerTous() {
         return clientRepository.findAll().stream().map(this::toDTO).toList();
     }
 
-    // CONSULTER un client par son id
+    public Page<ClientDTO> listerTousPaginer(Pageable pageable) {
+        return clientRepository.findAll(pageable).map(this::toDTO);
+    }
+
+    public Page<ClientDTO> rechercherParNomPaginer(String nom, Pageable pageable) {
+        return clientRepository.findByNomContainsIgnoreCase(nom, pageable).map(this::toDTO);
+    }
+
     public ClientDTO consulterParId(Long id) {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Client introuvable avec l'id : " + id));
         return toDTO(client);
     }
 
-    // RECHERCHER un client par téléphone
     public ClientDTO rechercherParTelephone(String telephone) {
         Client client = clientRepository.findByTelephone(telephone)
                 .orElseThrow(() -> new RessourceNotFoundException("Aucun client trouvé avec le téléphone : " + telephone));
         return toDTO(client);
     }
 
-    // RECHERCHER des clients par nom (partiel, insensible à la casse)
     public List<ClientDTO> rechercherParNom(String nom) {
         return clientRepository.findByNomContainsIgnoreCase(nom).stream().map(this::toDTO).toList();
     }

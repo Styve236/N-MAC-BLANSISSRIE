@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class PaiementRecuDTO {
     private BigDecimal montant;
     private String moyenPaiement;
+    private String typePaiement;
     private LocalDateTime datePaiement;
     private String referenceTransaction;
 }

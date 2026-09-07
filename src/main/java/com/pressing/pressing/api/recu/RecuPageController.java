@@ -44,13 +44,14 @@ public class RecuPageController {
         StringBuilder paiements = new StringBuilder();
         for (PaiementRecuDTO paiement : recu.getPaiements()) {
             paiements.append("<tr>")
+                    .append(td(esc(paiement.getTypePaiement())))
                     .append(td(esc(paiement.getMoyenPaiement())))
                     .append(td(paiement.getDatePaiement() != null ? paiement.getDatePaiement().format(FORMAT_DATE) : ""))
                     .append(td(formater(paiement.getMontant())))
                     .append("</tr>");
         }
         if (recu.getPaiements().isEmpty()) {
-            paiements.append("<tr><td colspan=\"3\" style=\"text-align:center;color:#999\">Aucun paiement enregistré</td></tr>");
+            paiements.append("<tr><td colspan=\"4\" style=\"text-align:center;color:#999\">Aucun paiement enregistré</td></tr>");
         }
 
         return "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"><title>Reçu " + esc(recu.getNumeroTicket()) + "</title>"
@@ -89,6 +90,8 @@ public class RecuPageController {
                 + "</tbody></table>"
                 + "<div class=\"montants\">"
                 + "<div class=\"ligne-total\"><span>Poids total</span><span>" + formater(recu.getPoidsTotal()) + " kg</span></div>"
+                + (recu.getRemise() != null && recu.getRemise().compareTo(BigDecimal.ZERO) > 0
+                        ? "<div class=\"ligne-total\" style=\"color:#047857\"><span>Fidélité (remise)</span><span>−" + formater(recu.getRemise()) + " F CFA</span></div>" : "")
                 + "<div class=\"ligne-total\"><span>Montant payé</span><span>" + formater(recu.getMontantPaye()) + " F CFA</span></div>"
                 + "</div>"
                 + "<div class=\"total\"><span>Total à payer</span><span>" + formater(recu.getMontantTotal()) + " F CFA</span></div>"
@@ -96,7 +99,7 @@ public class RecuPageController {
                         ? "<div class=\"restant\"><span>Reste à payer</span><span>" + formater(recu.getResteAPayer()) + " F CFA</span></div>"
                         : "<div class=\"paye\"><span>Paiement</span><span>Soldé</span></div>")
                 + "<h3>Paiements</h3>"
-                + "<table><thead><tr><th>Moyen</th><th>Date</th><th>Montant</th></tr></thead><tbody>"
+                + "<table><thead><tr><th>Type</th><th>Moyen</th><th>Date</th><th>Montant</th></tr></thead><tbody>"
                 + paiements
                 + "</tbody></table>"
                 + "<div class=\"pied\">Merci de votre confiance. Ce reçu est généré automatiquement.</div>"

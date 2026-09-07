@@ -86,6 +86,20 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.RECU_COMMANDE, client.getTelephone(), message);
     }
 
+    public void envoyerLivreCommande(Commande commande) {
+        Client client = commande.getClient();
+        StringBuilder message = new StringBuilder();
+        message.append("Bonjour ").append(client.getNom())
+                .append(", votre commande ").append(commande.getNumeroTicket())
+                .append(" sera livrée à l'adresse : ").append(commande.getAdresseLivraison());
+        if (commande.getDateLivraisonPrevue() != null) {
+            message.append(" le ").append(commande.getDateLivraisonPrevue().format(FORMAT_DATE));
+        }
+        message.append(". ").append(smsProperties.getNomPressing());
+
+        smsService.envoyer(TypeNotificationSms.LIVRAISON_PLANIFIEE, client.getTelephone(), message.toString());
+    }
+
     private String lienRecu(String numeroTicket) {
         return smsProperties.getRecuBaseUrl() + "/recu/" + numeroTicket;
     }

@@ -49,6 +49,8 @@ public class SecurityConfig {
                         // Public : login, page de test, reçus imprimables (lien client), affichage des photos
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/logout",
                                 "/",
                                 "/index.html",
                                 "/recu/**",

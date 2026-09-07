@@ -5,5 +5,6 @@ public enum TypeNotificationSms {
     PAIEMENT_RECU,
     LINGE_PRET,
     RAPPEL_IMPAYE,
-    RECU_COMMANDE
+    RECU_COMMANDE,
+    LIVRAISON_PLANIFIEE
 }

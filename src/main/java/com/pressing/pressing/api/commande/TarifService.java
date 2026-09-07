@@ -2,6 +2,8 @@ package com.pressing.pressing.api.commande;
 
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,8 +30,19 @@ public class TarifService {
         return tarifRepository.findAll();
     }
 
+    public Page<Tarif> listerPaginer(TypeNettoyage typeNettoyage, Pageable pageable) {
+        if (typeNettoyage != null) {
+            return tarifRepository.findByTypeNettoyage(typeNettoyage, pageable);
+        }
+        return tarifRepository.findAll(pageable);
+    }
+
     public List<Tarif> listerActifs() {
         return tarifRepository.findByActifTrue();
+    }
+
+    public Page<Tarif> listerActifsPaginer(Pageable pageable) {
+        return tarifRepository.findByActifTrue(pageable);
     }
 
     public Tarif consulter(Long id) {

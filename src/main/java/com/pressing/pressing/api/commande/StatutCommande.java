@@ -7,5 +7,6 @@ public enum StatutCommande {
     REPASSAGE,
     PRET,
     RECUPERE,
+    LIVRE,
     PAYEE
 }
