@@ -1,0 +1,274 @@
+.sidebar {
+  width: 260px;
+  background: #1e293b;
+  color: #f1f5f9;
+  height: 100vh;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  left: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid #334155;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  strong {
+    font-size: 18px;
+  }
+  span {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.nav {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #334155;
+    color: #fff;
+  }
+
+  &.active {
+    background: #2563eb;
+    color: #fff;
+  }
+}
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+}
+
+.footer {
+  padding: 16px;
+  border-top: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notifs {
+  position: relative;
+}
+
+.bell {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #334155;
+  color: #cbd5e1;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover {
+    background: #475569;
+    color: #fff;
+  }
+}
+
+.bell-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.notif-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  z-index: 50;
+  overflow: hidden;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.notif-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #334155;
+
+  .btn {
+    background: #334155;
+    color: #e2e8f0;
+    border: none;
+    font-size: 12px;
+    &:hover {
+      background: #475569;
+    }
+  }
+}
+
+.notif-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: #1e293b;
+  }
+
+  &.non-lue {
+    background: #1e293b;
+  }
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2563eb;
+  margin-top: 5px;
+  flex-shrink: 0;
+
+  &.vide {
+    background: #64748b;
+    opacity: 0.5;
+  }
+}
+
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.notif-message {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.notif-meta {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notif-vide {
+  padding: 16px 12px;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  font-size: 13px;
+  span {
+    color: #94a3b8;
+    font-size: 11px;
+  }
+}
+
+.logout-btn {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.content {
+  margin-left: 260px;
+  padding: 24px;
+  min-height: 100vh;
+  background: #f8fafc;
+}

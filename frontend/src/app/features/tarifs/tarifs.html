@@ -1,0 +1,138 @@
+<h1 class="page-title">Tarifs</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <div class="filters">
+    <div class="field">
+      <label>Type de nettoyage</label>
+      <select [(ngModel)]="filtreType" (change)="filtrer()">
+        <option value="">Tous</option>
+        @for (t of typesNettoyage; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (estAdmin()) {
+    <button class="btn btn-primary" (click)="ouvrirNouveau()">
+      <app-icon nom="plus" [taille]="16" />
+      Nouveau tarif
+    </button>
+  }
+</div>
+
+@if (showForm()) {
+  <div class="form-card">
+    <h3>{{ form().idtarif ? 'Modifier le tarif' : 'Nouveau tarif' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nom</label>
+        <input [(ngModel)]="form().nom" placeholder="Ex : Chemise officier" />
+      </div>
+      <div class="field">
+        <label>Type de vêtement</label>
+        <input [(ngModel)]="form().typevetement" placeholder="Ex : Chemise" />
+      </div>
+      <div class="field">
+        <label>Type de nettoyage</label>
+        <select [(ngModel)]="form().typeNettoyage">
+          @for (t of typesNettoyage; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label>Prix au kg (FCFA)</label>
+        <input type="number" min="0" [(ngModel)]="form().prixauklo" />
+      </div>
+      <div class="field">
+        <label>Prix unitaire (FCFA)</label>
+        <input type="number" min="0" [(ngModel)]="form().prixunitaire" />
+      </div>
+      <div class="field">
+        <label>
+          <input type="checkbox" [(ngModel)]="form().actif" />
+          Actif
+        </label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement()">
+        <app-icon nom="check" [taille]="16" />
+        {{ enregistrement() ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+      <button class="btn" (click)="annuler()">
+        <app-icon nom="x" [taille]="16" />
+        Annuler
+      </button>
+    </div>
+  </div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (tarifs().length === 0) {
+  <p class="empty">Aucun tarif. Ajoutez votre première grille tarifaire.</p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Type</th>
+          <th>Nettoyage</th>
+          <th class="num">Au kg</th>
+          <th class="num">Unitaire</th>
+          <th>Actif</th>
+          @if (estAdmin()) {
+            <th></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of tarifs(); track t.idtarif) {
+          <tr>
+            <td>{{ t.nom || '—' }}</td>
+            <td>{{ t.typevetement || '—' }}</td>
+            <td>{{ t.typeNettoyage || '—' }}</td>
+            <td class="num">{{ t.prixauklo ? (t.prixauklo | cfa) : '—' }}</td>
+            <td class="num">{{ t.prixunitaire ? (t.prixunitaire | cfa) : '—' }}</td>
+            <td>
+              <span class="pill" [class]="t.actif ? 'pill-green' : 'pill-red'">{{ t.actif ? 'Actif' : 'Inactif' }}</span>
+            </td>
+            @if (estAdmin()) {
+              <td class="actions">
+                <button class="btn btn-sm" (click)="ouvrirEdition(t)" title="Modifier">
+                  <app-icon nom="edit" [taille]="14" />
+                </button>
+                <button
+                  class="btn btn-sm"
+                  [class.btn-danger]="t.actif"
+                  (click)="basculerActif(t)"
+                  [title]="t.actif ? 'Désactiver' : 'Activer'"
+                >
+                  <app-icon [nom]="t.actif ? 'trash' : 'check'" [taille]="14" />
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn btn-sm" (click)="allerPage(-1)" [disabled]="page() === 0">Précédent</button>
+        <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
+        <button class="btn btn-sm" (click)="allerPage(1)" [disabled]="page() >= totalPages() - 1">Suivant</button>
+      </div>
+    }
+  </div>
+}

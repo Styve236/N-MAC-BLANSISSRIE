@@ -1,0 +1,133 @@
+<h1 class="page-title">Caisse</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <div class="filters">
+    <div class="field">
+      <label>Date</label>
+      <input type="date" [(ngModel)]="date" />
+    </div>
+    <button class="btn" (click)="chargerRapport()">
+      <app-icon nom="search" [taille]="16" />
+      Voir le rapport
+    </button>
+  </div>
+  <button class="btn" (click)="ticket()">
+    <app-icon nom="download" [taille]="16" />
+    Ticket du jour
+  </button>
+</div>
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (rapport(); as r) {
+  <div class="detail-section">
+    <h2>Rapport du {{ r.date | dateFr:'date' }}</h2>
+    <div class="summary-bar">
+      <div class="summary-item">
+        <span>Total logiciel</span>
+        <strong>{{ r.totalLogiciel | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total compté</span>
+        <strong>{{ r.totalCompte | cfa }}</strong>
+      </div>
+      <div class="summary-item" [style.border-color]="(r.ecart ?? 0) === 0 ? '#16a34a' : '#dc2626'">
+        <span>Écart</span>
+        <strong [style.color]="(r.ecart ?? 0) === 0 ? '#15803d' : '#b91c1c'">
+          {{ (r.ecart ?? 0) | cfa }}
+        </strong>
+      </div>
+      <div class="summary-item">
+        <span>Paiements</span>
+        <strong>{{ r.nombrePaiements }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Statut</span>
+        <strong>{{ r.cloturee ? 'Clôturée' : 'Ouverte' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h2>Détail par moyen de paiement</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Moyen</th>
+          <th class="num">Montant</th>
+          <th class="num">Nombre</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of parMoyen(r); track m.moyen) {
+          <tr>
+            <td>{{ libelleMoyen(m.moyen ?? '') }}</td>
+            <td class="num">{{ (m.montant ?? 0) | cfa }}</td>
+            <td class="num">{{ m.nombre ?? 0 }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!r.cloturee) {
+    <div class="form-card">
+      <h3>Clôturer la caisse</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Montant compté en caisse (FCFA)</label>
+          <input type="number" min="0" [(ngModel)]="montantEnCaisse" />
+        </div>
+        <div class="field">
+          <label>Observations</label>
+          <input [(ngModel)]="observations" placeholder="Ex : comptage du soir" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="cloturer()" [disabled]="enCoursCloture()">
+          <app-icon nom="check" [taille]="16" />
+          {{ enCoursCloture() ? 'Clôture…' : 'Clôturer' }}
+        </button>
+      </div>
+    </div>
+  }
+}
+
+<div class="detail-section">
+  <h2>Historique des clôtures</h2>
+  @if (historique().length === 0) {
+    <p class="empty">Aucune clôture enregistrée.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th class="num">Logiciel</th>
+          <th class="num">Compté</th>
+          <th class="num">Écart</th>
+          <th>Observations</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (h of historique(); track h.idcloture) {
+          <tr>
+            <td>{{ h.date | dateFr:'date' }}</td>
+            <td class="num">{{ h.totalLogiciel | cfa }}</td>
+            <td class="num">{{ h.totalCompte | cfa }}</td>
+            <td class="num">{{ h.ecart | cfa }}</td>
+            <td>{{ h.observations ?? '—' }}</td>
+            <td>{{ h.cloturee ? 'Clôturée' : 'Ouverte' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

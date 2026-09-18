@@ -1,0 +1,178 @@
+<h1 class="page-title">Nouvelle commande</h1>
+
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<!-- Client -->
+<div class="detail-section">
+  <h2>Client</h2>
+
+  @if (clientSelectionne(); as c) {
+    <div class="summary-bar">
+      <div class="summary-item">
+        <strong>{{ c.nom }}</strong>
+        {{ c.telephone }} · {{ c.ville || '—' }} · {{ c.quartier || '—' }}
+      </div>
+      <button class="btn" (click)="changerClient()">
+        <app-icon nom="x" [taille]="16" />
+        Changer
+      </button>
+    </div>
+  } @else {
+    <div class="form-grid">
+      <div class="field">
+        <label>Recherche (téléphone ou nom)</label>
+        <input [(ngModel)]="recherchePhone" (keyup.enter)="chercherClient()" placeholder="Ex : 691234567" />
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <button class="btn" (click)="chercherClient()">
+          <app-icon nom="search" [taille]="16" />
+          Rechercher
+        </button>
+      </div>
+    </div>
+
+    @if (resultats().length > 0) {
+      <div class="result-list">
+        @for (c of resultats(); track c.id) {
+          <button class="result-item" (click)="choisirClient(c)">
+            <strong>{{ c.nom }}</strong>
+            <span>{{ c.telephone }}</span>
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Lignes -->
+<div class="detail-section">
+  <h2>Articles</h2>
+
+  @if (enChargementTarifs()) {
+    <p>Chargement des tarifs…</p>
+  } @else {
+    @for (ligne of lignes(); track $index; let i = $index) {
+      <div class="ligne">
+        <div class="form-grid">
+          <div class="field">
+            <label>Tarif</label>
+            <select [(ngModel)]="ligne.tarifId">
+              <option [ngValue]="null">— Choisir —</option>
+              @for (t of tarifs(); track t.idtarif) {
+                <option [ngValue]="t.idtarif">{{ libelleTarif(t) }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Facturation</label>
+            <select [(ngModel)]="ligne.auPoids">
+              <option [ngValue]="true">Au poids (kg)</option>
+              <option [ngValue]="false">À la pièce</option>
+            </select>
+          </div>
+          @if (ligne.auPoids) {
+            <div class="field">
+              <label>Poids (kg)</label>
+              <input type="number" min="0" step="0.1" [(ngModel)]="ligne.poids" />
+            </div>
+          } @else {
+            <div class="field">
+              <label>Quantité</label>
+              <input type="number" min="1" step="1" [(ngModel)]="ligne.quantite" />
+            </div>
+          }
+          <div class="field">
+            <label>Type de nettoyage</label>
+            <select [(ngModel)]="ligne.typeNettoyage">
+              @for (t of typesNettoyage; track t.value) {
+                <option [value]="t.value">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <input [(ngModel)]="ligne.description" placeholder="Ex : 3 boutons à recoudre" />
+          </div>
+        </div>
+        <div class="ligne-actions">
+          <div class="ligne-total">
+            Sous-total : <strong>{{ montantLigne(ligne) | cfa }}</strong>
+          </div>
+          @if (lignes().length > 1) {
+            <button class="btn btn-sm btn-danger" (click)="retirerLigne(i)">
+              <app-icon nom="trash" [taille]="14" />
+              Retirer
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <button class="btn" (click)="ajouterLigne()">
+      <app-icon nom="plus" [taille]="16" />
+      Ajouter un article
+    </button>
+  }
+</div>
+
+<!-- Options -->
+<div class="detail-section">
+  <h2>Options</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label>Date de retrait prévue</label>
+      <input type="date" [(ngModel)]="dateRetrait" />
+    </div>
+    <div class="field">
+      <label>Acompte (FCFA)</label>
+      <input type="number" min="0" [(ngModel)]="acompte" />
+    </div>
+    <div class="field">
+      <label>Moyen de paiement de l'acompte</label>
+      <select [(ngModel)]="moyenAcompte" [disabled]="!acompteValide()">
+        @for (m of moyensPaiement; track m.value) {
+          <option [value]="m.value">{{ m.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label>Message pour la production (optionnel)</label>
+      <textarea
+        rows="2"
+        [(ngModel)]="messageAgent"
+        placeholder="Ex : Client pressé, à traiter en priorité."
+      ></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Récapitulatif -->
+<div class="detail-section">
+  <h2>Récapitulatif</h2>
+  <div class="summary-bar">
+    <div class="summary-item">
+      <strong>Montant total</strong>
+      <span>{{ montantTotal() | cfa }}</span>
+    </div>
+    @if (acompteValide()) {
+      <div class="summary-item">
+        <strong>Acompte versé</strong>
+        <span>{{ acompte() | cfa }}</span>
+      </div>
+      <div class="summary-item">
+        <strong>Reste à payer</strong>
+        <span>{{ resteAPayer() | cfa }}</span>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="form-actions">
+  <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement()">
+    <app-icon nom="check" [taille]="16" />
+    {{ enregistrement() ? 'Création…' : 'Créer la commande' }}
+  </button>
+  <button class="btn" (click)="annuler()">Annuler</button>
+</div>

@@ -1,0 +1,94 @@
+<h1 class="page-title">Commandes</h1>
+
+<div class="toolbar">
+  <div class="filters">
+    <div class="field">
+      <label>Ticket</label>
+      <input [(ngModel)]="filtreTicket" placeholder="TK-…" (keyup.enter)="filtrerTicket()" />
+    </div>
+    <div class="field">
+      <label>Statut</label>
+      <select [(ngModel)]="filtreStatut" (change)="filtrer()">
+        <option value="">Tous</option>
+        @for (s of statuts; track s) {
+          <option [value]="s">{{ libelleStatut(s) }}</option>
+        }
+      </select>
+    </div>
+    <button class="btn" (click)="filtrerTicket()">
+      <app-icon nom="search" [taille]="16" />
+      Rechercher
+    </button>
+  </div>
+
+  @if (peutEcrire()) {
+    <button class="btn btn-primary" (click)="nouveau()">
+      <app-icon nom="plus" [taille]="16" />
+      Nouvelle commande
+    </button>
+  }
+</div>
+
+@if (clientFiltre(); as cl) {
+  <div class="summary-bar" style="margin-bottom: 16px">
+    <div class="summary-item">
+      <strong>Client :</strong> {{ cl.nom }}
+    </div>
+    <button class="btn btn-sm" (click)="retirerClient()">
+      <app-icon nom="x" [taille]="14" />
+      Retirer le filtre
+    </button>
+  </div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (commandes().length === 0) {
+  <p class="empty">Aucune commande.</p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th class="triable" (click)="trier('numeroTicket')">Ticket {{ flecheTri('numeroTicket') }}</th>
+          <th class="num">Poids</th>
+          <th class="num triable" (click)="trier('montantTotal')">Total {{ flecheTri('montantTotal') }}</th>
+          <th class="num">Reste à payer</th>
+          <th>Statut</th>
+          <th class="num triable" (click)="trier('montantPaye')">Payé {{ flecheTri('montantPaye') }}</th>
+          <th class="triable" (click)="trier('dateCreation')">Créée le {{ flecheTri('dateCreation') }}</th>
+          <th>À retirer</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of commandes(); track c.idcommande) {
+          <tr class="row-click" (click)="ouvrirDetail(c)">
+            <td>{{ c.numeroTicket }}</td>
+            <td class="num">{{ c.poidsTotal }} kg</td>
+            <td class="num">{{ c.montantTotal | cfa }}</td>
+            <td class="num">{{ c.resteAPayer | cfa }}</td>
+            <td>
+              <div class="statut-cell">
+                <app-statut-badge [statut]="c.statut ?? ''" />
+                @if ((c.resteAPayer ?? 0) > 0) {
+                  <span class="pill pill-red">Impayé</span>
+                }
+              </div>
+            </td>
+            <td class="num">{{ c.montantPaye | cfa }}</td>
+            <td>{{ c.dateCreation | dateFr }}</td>
+            <td>{{ c.dateRecuperationPrevue | dateFr:'date' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn btn-sm" (click)="allerPage(-1)" [disabled]="page() === 0">Précédent</button>
+        <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
+        <button class="btn btn-sm" (click)="allerPage(1)" [disabled]="page() >= totalPages() - 1">Suivant</button>
+      </div>
+    }
+  </div>
+}

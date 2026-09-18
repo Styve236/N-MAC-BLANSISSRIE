@@ -1,0 +1,102 @@
+@if (enChargement()) {
+  <p>Chargement du tableau de bord…</p>
+} @else if (data(); as d) {
+  <h1 class="page-title">Tableau de bord</h1>
+
+  <section class="cards">
+    <div class="card">
+      <span class="label">CA du jour</span>
+      <span class="value">{{ d.tendances?.caJour?.actuel | cfa }}</span>
+      <span class="trend"
+        >vs hier :
+        {{ d.tendances?.caJour?.precedent | cfa }}
+        ({{ d.tendances?.caJour?.variation }}%)</span
+      >
+    </div>
+    <div class="card">
+      <span class="label">CA de la semaine</span>
+      <span class="value">{{ d.tendances?.caSemaine?.actuel | cfa }}</span>
+    </div>
+    <div class="card">
+      <span class="label">CA du mois</span>
+      <span class="value">{{ d.tendances?.caMois?.actuel | cfa }}</span>
+    </div>
+    <div class="card">
+      <span class="label">Commandes en cours</span>
+      <span class="value">{{ d.tendances?.commandesEnCours }}</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section>
+      <h2>Commandes en retard</h2>
+      @if (d.commandesEnRetard.length === 0) {
+        <p class="empty">Aucune commande en retard.</p>
+      }
+      <table>
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Client</th>
+            <th>Retard</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of d.commandesEnRetard; track c.commandeId) {
+            <tr>
+              <td>{{ c.numeroTicket }}</td>
+              <td>{{ c.clientNom }}</td>
+              <td>{{ c.joursRetard }} j</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Clients impayés</h2>
+      @if (d.clientsImpayes.length === 0) {
+        <p class="empty">Aucun client impayé.</p>
+      }
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Impayer</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of d.clientsImpayes; track c.clientId) {
+            <tr>
+              <td>{{ c.nom }} ({{ c.telephone }})</td>
+              <td>{{ c.montantImpaye | cfa }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Stock critique</h2>
+      @if (d.stockCritique.length === 0) {
+        <p class="empty">Stock suffisant.</p>
+      }
+      <table>
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of d.stockCritique; track s.vetementId) {
+            <tr>
+              <td>{{ s.libelle }}</td>
+              <td>{{ s.quantiteStock }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+}

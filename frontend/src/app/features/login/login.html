@@ -1,0 +1,21 @@
+<form [formGroup]="form" class="card" (ngSubmit)="soumettre()">
+  <h2>Connexion</h2>
+
+  @if (erreur()) {
+    <div class="error">{{ erreur() }}</div>
+  }
+
+  <label>
+    Email
+    <input type="email" formControlName="email" placeholder="admin@press.com" autocomplete="email" />
+  </label>
+
+  <label>
+    Mot de passe
+    <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
+  </label>
+
+  <button type="submit" [disabled]="form.invalid || enChargement()">
+    {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
+  </button>
+</form>

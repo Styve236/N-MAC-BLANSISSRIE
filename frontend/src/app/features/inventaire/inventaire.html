@@ -1,0 +1,197 @@
+<h1 class="page-title">Inventaire</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <div class="tabs">
+    <button class="btn" [class.btn-primary]="onglet() === 'vetements'" (click)="switcher('vetements')">Articles</button>
+    <button class="btn" [class.btn-primary]="onglet() === 'bons'" (click)="switcher('bons')">Bons d'inventaire</button>
+  </div>
+
+  @if (onglet() === 'vetements' && estAdmin()) {
+    <button class="btn btn-primary" (click)="ouvrirNouveauVetement()">
+      <app-icon nom="plus" [taille]="16" />
+      Nouvel article
+    </button>
+  }
+  @if (onglet() === 'bons' && estAdmin()) {
+    <button class="btn btn-primary" (click)="showBonForm.set(!showBonForm())">
+      <app-icon nom="plus" [taille]="16" />
+      Nouveau bon
+    </button>
+  }
+</div>
+
+<!-- Articles -->
+@if (onglet() === 'vetements') {
+  @if (showVetementForm()) {
+    <div class="form-card">
+      <h3>{{ vetementForm().idvetement ? 'Modifier l' + "'" + 'article' : 'Nouvel article' }}</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Libellé</label>
+          <input [(ngModel)]="vetementForm().libelle" placeholder="Ex : Savon lessive" />
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <input [(ngModel)]="vetementForm().typedevetement" placeholder="Ex : Consommable" />
+        </div>
+        <div class="field">
+          <label>Quantité en stock</label>
+          <input type="number" min="0" [(ngModel)]="vetementForm().quantiteStock" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="enregistrerVetement()" [disabled]="enregistrementVetement()">
+          <app-icon nom="check" [taille]="16" />
+          Enregistrer
+        </button>
+        <button class="btn" (click)="showVetementForm.set(false)">Annuler</button>
+      </div>
+    </div>
+  }
+
+  @if (enChargement()) {
+    <p>Chargement…</p>
+  } @else if (vetements().length === 0) {
+    <p class="empty">Aucun article en stock.</p>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Libellé</th>
+            <th>Type</th>
+            <th class="num">Stock</th>
+            @if (estAdmin()) {
+              <th></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of vetements(); track v.idvetement) {
+            <tr>
+              <td>{{ v.libelle }}</td>
+              <td>{{ v.typedevetement ?? '—' }}</td>
+              <td
+                class="num"
+                [style.color]="(v.quantiteStock ?? 0) <= 5 ? '#b91c1c' : '#0f172a'"
+                [title]="(v.quantiteStock ?? 0) <= 5 ? 'Stock critique' : ''"
+              >
+                {{ v.quantiteStock ?? 0 }}
+              </td>
+              @if (estAdmin()) {
+                <td class="actions">
+                  <button class="btn btn-sm" (click)="ouvrirEditionVetement(v)">
+                    <app-icon nom="edit" [taille]="14" />
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="supprimerVetement(v)">
+                    <app-icon nom="trash" [taille]="14" />
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<!-- Bons -->
+@if (onglet() === 'bons') {
+  @if (showBonForm()) {
+    <div class="form-card">
+      <h3>Nouveau bon</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" [(ngModel)]="bonForm().date" />
+        </div>
+        <div class="field">
+          <label>Observations</label>
+          <input [(ngModel)]="bonForm().observations" placeholder="Ex : réappro caisse" />
+        </div>
+      </div>
+
+      @for (ligne of lignesBon(); track $index; let i = $index) {
+        <div class="ligne">
+          <div class="form-grid">
+            <div class="field">
+              <label>Article</label>
+              <select [(ngModel)]="ligne.vetementId">
+                <option [ngValue]="null">— Choisir —</option>
+                @for (v of vetements(); track v.idvetement) {
+                  <option [ngValue]="v.idvetement">{{ v.libelle }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Mouvement</label>
+              <select [(ngModel)]="ligne.sens">
+                <option value="entree">Entrée (+)</option>
+                <option value="sortie">Sortie (−)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Quantité</label>
+              <input type="number" min="1" [(ngModel)]="ligne.quantite" />
+            </div>
+          </div>
+          @if (lignesBon().length > 1) {
+            <div class="ligne-actions">
+              <button class="btn btn-sm btn-danger" (click)="retirerLigneBon(i)">
+                <app-icon nom="trash" [taille]="14" />
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <button class="btn" (click)="ajouterLigneBon()">
+        <app-icon nom="plus" [taille]="16" />
+        Ajouter une ligne
+      </button>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="enregistrerBon()" [disabled]="enregistrementBon()">
+          <app-icon nom="check" [taille]="16" />
+          {{ enregistrementBon() ? 'Création…' : 'Créer le bon' }}
+        </button>
+        <button class="btn" (click)="showBonForm.set(false)">Annuler</button>
+      </div>
+    </div>
+  }
+
+  @if (bons().length === 0) {
+    <p class="empty">Aucun bon d'inventaire.</p>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Observations</th>
+            <th class="num">Quantité totale</th>
+            <th class="num">Lignes</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of bons(); track b.idinventaire) {
+            <tr>
+              <td>{{ b.dateInventaire | dateFr:'date' }}</td>
+              <td>{{ b.observations ?? '—' }}</td>
+              <td class="num">{{ b.totalQuantite }}</td>
+              <td class="num">{{ b.lignes?.length ?? 0 }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

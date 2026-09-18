@@ -1,0 +1,141 @@
+<h1 class="page-title">Fidélité</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+@if (!client()) {
+  <div class="detail-section">
+    <h2>Rechercher un client</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>Téléphone ou nom</label>
+        <input [(ngModel)]="recherchePhone" (keyup.enter)="chercher()" placeholder="Ex : 691234567" />
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <button class="btn" (click)="chercher()">
+          <app-icon nom="search" [taille]="16" />
+        </button>
+      </div>
+    </div>
+
+    @if (resultats().length > 0) {
+      <div class="result-list">
+        @for (c of resultats(); track c.id) {
+          <button class="result-item" (click)="choisirClient(c)">
+            <strong>{{ c.nom }}</strong>
+            <span>{{ c.telephone }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+} @else {
+  @if (enChargement()) {
+    <p>Chargement…</p>
+  } @else {
+    <div class="detail-section">
+      <h2>
+        {{ client()!.nom }} ({{ client()!.telephone }})
+        <button class="btn btn-sm" style="float:right" (click)="changerClient()">Changer</button>
+      </h2>
+      <div class="summary-bar">
+        <div class="summary-item" style="border:2px solid #f59e0b">
+          <span>Solde de points</span>
+          <strong style="color:#b45309">{{ solde()?.points ?? 0 }} pts</strong>
+        </div>
+        <div class="summary-item">
+          <span>Valeur estimée</span>
+          <strong>{{ solde()?.valeurEstimee ?? '0 FCFA' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Utilisation -->
+    @if (commandesClient().length > 0) {
+      <div class="form-card">
+        <h3>Utiliser des points (remise)</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Commande non payée</label>
+            <select [(ngModel)]="commandeId">
+              <option [ngValue]="null">— Choisir —</option>
+              @for (c of commandesClient(); track c.idcommande) {
+                <option [ngValue]="c.idcommande">
+                  {{ c.numeroTicket }} — reste {{ (c.resteAPayer ?? 0).toLocaleString('fr-FR') }} FCFA
+                </option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Nombre de points (1 pt = 1 FCFA)</label>
+            <input type="number" min="1" [max]="solde()?.points ?? 0" [(ngModel)]="nbPoints" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="utiliser()" [disabled]="enCoursUtilisation()">
+            <app-icon nom="check" [taille]="16" />
+            {{ enCoursUtilisation() ? 'Application…' : 'Appliquer la remise' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Crédit manuel admin -->
+    @if (estAdmin()) {
+      <div class="form-card">
+        <h3>Créditer manuellement</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Points à ajouter</label>
+            <input type="number" min="1" [(ngModel)]="nbPointsCredit" />
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <input [(ngModel)]="descCredit" placeholder="Ex : compensation erreur" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="crediter()" [disabled]="enCoursCredit()">
+            <app-icon nom="plus" [taille]="16" />
+            Créditer
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Historique -->
+    <div class="detail-section">
+      <h2>Historique</h2>
+      @if (historique().length === 0) {
+        <p class="empty">Aucun mouvement de points.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th class="num">Points</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of historique(); track h.idpoint) {
+              <tr>
+                <td>{{ h.date | dateFr }}</td>
+                <td>{{ libelleType(h.type ?? '') }}</td>
+                <td class="num" [style.color]="(h.points ?? 0) >= 0 ? '#15803d' : '#b91c1c'">
+                  {{ h.points }}
+                </td>
+                <td>{{ h.description ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+}

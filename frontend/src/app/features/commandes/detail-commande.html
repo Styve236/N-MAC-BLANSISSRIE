@@ -1,0 +1,236 @@
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (commande(); as c) {
+  <div class="page-title">
+    <span class="detail-header">
+      <button class="btn btn-sm" (click)="retour()">
+        <app-icon nom="x" [taille]="16" />
+      </button>
+      {{ c.numeroTicket }}
+    </span>
+    <app-statut-badge [statut]="c.statut ?? ''" />
+  </div>
+
+  <!-- Infos générales -->
+  <div class="detail-section">
+    <h2>Informations</h2>
+    <div class="kv">
+      <div class="kv-item">
+        <span>Client</span>
+        <strong>{{ c.client?.nom }} — {{ c.client?.telephone }}</strong>
+      </div>
+      <div class="kv-item">
+        <span>Créée le</span>
+        <strong>{{ c.dateCreation | dateFr }}</strong>
+      </div>
+      <div class="kv-item">
+        <span>Retrait prévu</span>
+        <strong>{{ c.dateRecuperationPrevue ? (c.dateRecuperationPrevue | dateFr) : '—' }}</strong>
+      </div>
+      @if (c.dateRetraitReelle) {
+        <div class="kv-item">
+          <span>Retirée le</span>
+          <strong>{{ c.dateRetraitReelle ? (c.dateRetraitReelle | dateFr) : '—' }}</strong>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Lignes -->
+  <div class="detail-section">
+    <h2>Articles</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tarif</th>
+          <th>Nettoyage</th>
+          <th class="num">Poids (kg)</th>
+          <th class="num">Qté</th>
+          <th class="num">Montant</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of c.lignes ?? []; track l.idligne) {
+          <tr>
+            <td>{{ l.tarif.nom }}</td>
+            <td>{{ l.typeNettoyage ?? '—' }}</td>
+            <td class="num">{{ l.poids ?? '—' }}</td>
+            <td class="num">{{ l.quantite ?? '—' }}</td>
+            <td class="num">{{ l.montant | cfa }}</td>
+            <td>{{ l.description || '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Totaux -->
+  <div class="detail-section">
+    <h2>Récapitulatif</h2>
+    <div class="summary-bar">
+      <div class="summary-item">
+        <span>Poids total</span>
+        <strong>{{ c.poidsTotal }} kg</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total</span>
+        <strong>{{ c.montantTotal | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Remise</span>
+        <strong>{{ (c.remise ?? 0) | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Payé</span>
+        <strong>{{ (c.montantPaye ?? 0) | cfa }}</strong>
+      </div>
+      <div class="summary-item" style="border:2px solid #2563eb">
+        <span>Reste à payer</span>
+        <strong style="color:#2563eb">{{ statutPaiement()?.resteAPayer | cfa }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paiements -->
+  @if (statutPaiement(); as sp) {
+    <div class="detail-section">
+      <h2>Paiements</h2>
+      @if ((sp.paiements ?? []).length === 0) {
+        <p style="color:#94a3b8;font-size:13px">Aucun paiement.</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Montant</th>
+              <th>Moyen</th>
+              <th>Type</th>
+              <th>Référence</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of sp.paiements ?? []; track p.idpaiement) {
+              <tr>
+                <td class="num">{{ p.montant | cfa }}</td>
+                <td>{{ libelleMoyen(p.moyenPaiement ?? '') }}</td>
+                <td>{{ p.typePaiement ?? '—' }}</td>
+                <td>{{ p.referenceTransaction ?? '—' }}</td>
+                <td>{{ p.datePaiement | dateFr }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      @if (peutPayer() && (sp.resteAPayer ?? 0) > 0) {
+        <div class="paiement-form">
+          <div class="field">
+            <label>Montant (FCFA)</label>
+            <input type="number" min="1" [max]="sp.resteAPayer ?? null" [(ngModel)]="paiementForm().montant" />
+          </div>
+          <div class="field">
+            <label>Moyen de paiement</label>
+            <select [(ngModel)]="paiementForm().moyenPaiement">
+              @for (m of moyensPaiement; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Référence transaction</label>
+            <input [(ngModel)]="paiementForm().referenceTransaction" placeholder="Optionnel" />
+          </div>
+          <button class="btn btn-primary" (click)="payer()" [disabled]="enCoursPaiement()">
+            <app-icon nom="check" [taille]="16" />
+            {{ enCoursPaiement() ? 'Paiement…' : 'Enregistrer le paiement' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Statut & Actions -->
+  <div class="detail-section">
+    <h2>Actions</h2>
+    <div class="actions-bar">
+      @if (peutChangerStatut()) {
+        <div class="field">
+          <label>Statut</label>
+          <select [(ngModel)]="nouveauStatut">
+            @for (s of commandes; track s) {
+              <option [value]="s">{{ libelleStatut(s) }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn btn-primary" (click)="appliquerStatut()" [disabled]="enCoursStatut() || enCoursLivraison()">
+          <app-icon nom="check" [taille]="16" />
+          {{ enCoursStatut() ? 'Enregistrement…' : 'Appliquer' }}
+        </button>
+      }
+
+      <button class="btn" (click)="telechargerRecuPdf()">
+        <app-icon nom="download" [taille]="16" />
+        Reçu PDF
+      </button>
+
+      <button class="btn" (click)="envoyerRecu()">
+        <app-icon nom="phone" [taille]="16" />
+        Envoyer le reçu (SMS)
+      </button>
+    </div>
+
+    @if (peutChangerStatut() && nouveauStatut() === 'PRET' && c.statut !== 'PRET') {
+      <div class="form-card" style="margin-top:16px">
+        <h3>Livraison à domicile</h3>
+        @if (livreurs().length > 0) {
+          <p style="margin:0 0 12px;color:#475569;font-size:13px">
+            En marquant « prête », la commande sera envoyée automatiquement au livreur
+            <strong>{{ livreurActifLabel() }}</strong> avec l'adresse « {{ adresseClient() }} ».
+          </p>
+          <label class="toggle">
+            <input type="checkbox" [(ngModel)]="afficherFormLivraison" />
+            <span>Modifier l'adresse, les frais ou le livreur</span>
+          </label>
+        } @else {
+          <p style="margin:0;color:#b45309;font-size:13px">
+            Aucun livreur actif — créez d'abord un compte LIVREUR dans Utilisateurs pour que la commande apparaisse dans son tableau de bord.
+          </p>
+        }
+
+        @if (afficherFormLivraison()) {
+          <div class="form-grid">
+            <div class="field">
+              <label>Adresse de livraison</label>
+              <input [(ngModel)]="adresseLivraison" placeholder="Ex : Sa'a, quartier 3" />
+            </div>
+            <div class="field">
+              <label>Livreur</label>
+              <select [(ngModel)]="livreurId">
+                <option [ngValue]="null">— Choisir —</option>
+                @for (l of livreurs(); track l.idusers) {
+                  <option [ngValue]="l.idusers">{{ l.nom }} ({{ l.tels }})</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Frais de livraison (FCFA)</label>
+              <input type="number" min="0" [(ngModel)]="fraisLivraison" />
+            </div>
+            <div class="field">
+              <label>Livraison prévue le</label>
+              <input type="date" [(ngModel)]="dateLivraisonPrevue" />
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

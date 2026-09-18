@@ -1,0 +1,110 @@
+<h1 class="page-title">Clients</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <div class="filters">
+    <div class="field">
+      <label>Recherche</label>
+      <input
+        [(ngModel)]="recherche"
+        (keyup.enter)="rechercher()"
+        placeholder="Nom ou téléphone…"
+      />
+    </div>
+    <button class="btn" (click)="rechercher()">
+      <app-icon nom="search" [taille]="16" />
+      Rechercher
+    </button>
+    @if (recherche()) {
+      <button class="btn" (click)="effacerRecherche()">
+        <app-icon nom="x" [taille]="16" />
+        Effacer
+      </button>
+    }
+  </div>
+
+  @if (peutEcrire()) {
+    <button class="btn btn-primary" (click)="ouvrirNouveau()">
+      <app-icon nom="plus" [taille]="16" />
+      Nouveau client
+    </button>
+  }
+</div>
+
+@if (showForm()) {
+  <div class="form-card">
+    <h3>Nouveau client</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nom <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="form().nom" placeholder="Ex : Jean Mbarga" />
+      </div>
+      <div class="field">
+        <label>Téléphone <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="form().telephone" placeholder="Ex : 691234567" />
+      </div>
+      <div class="field">
+        <label>Ville</label>
+        <input [(ngModel)]="form().ville" placeholder="Ex : Douala" />
+      </div>
+      <div class="field">
+        <label>Quartier</label>
+        <input [(ngModel)]="form().quartier" placeholder="Ex : Bonabéri" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement()">
+        <app-icon nom="check" [taille]="16" />
+        {{ enregistrement() ? 'Enregistrement…' : 'Enregistrer' }}
+      </button>
+      <button class="btn" (click)="annuler()">
+        <app-icon nom="x" [taille]="16" />
+        Annuler
+      </button>
+    </div>
+  </div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (clients().length === 0) {
+  <p class="empty">Aucun client trouvé.</p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Téléphone</th>
+          <th>Ville</th>
+          <th>Quartier</th>
+          <th class="num">Points fidélité</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of clients(); track c.id) {
+          <tr>
+            <td>{{ c.nom }}</td>
+            <td>{{ c.telephone }}</td>
+            <td>{{ c.ville || '—' }}</td>
+            <td>{{ c.quartier || '—' }}</td>
+            <td class="num">{{ c.points_fidelites ?? 0 }}</td>
+            <td>
+              <button class="btn btn-sm" (click)="voirCommandes(c)">
+                <app-icon nom="commandes" [taille]="14" />
+                Commandes
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

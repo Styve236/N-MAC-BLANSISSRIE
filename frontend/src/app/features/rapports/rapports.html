@@ -1,0 +1,215 @@
+<h1 class="page-title">Rapports & Statistiques</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<!-- Synthèse -->
+@if (data(); as d) {
+  <div class="detail-section">
+    <h2>Synthèse du chiffre d'affaires</h2>
+    <div class="summary-bar">
+      <div class="summary-item">
+        <span>CA jour</span>
+        <strong>{{ d.chiffreAffairesJour | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>CA mois</span>
+        <strong>{{ d.chiffreAffairesMois | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total encaissé</span>
+        <strong>{{ d.totalEncaisse | cfa }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total commandes</span>
+        <strong>{{ d.totalCommandes }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Commandes aujourd'hui</span>
+        <strong>{{ d.commandesAujourdhui }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total clients</span>
+        <strong>{{ d.totalClients }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Impayées</span>
+        <strong style="color:#b91c1c">{{ d.commandesImpayees }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Montant impayé</span>
+        <strong style="color:#b91c1c">{{ (d.montantImpayeTotal ?? 0) | cfa }}</strong>
+      </div>
+    </div>
+  </div>
+
+  @if (commandesParStatut().length > 0) {
+    <div class="detail-section">
+      <h2>Commandes par statut</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Statut</th>
+            <th class="num">Nombre</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of commandesParStatut(); track row.statut) {
+            <tr>
+              <td>{{ libelleStatut(row.statut) }}</td>
+              <td class="num">{{ row.count }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (encaissementsParMoyen().length > 0) {
+    <div class="detail-section">
+      <h2>Encaissements par moyen de paiement</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Moyen</th>
+            <th class="num">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of encaissementsParMoyen(); track row.moyen) {
+            <tr>
+              <td>{{ libelleMoyen(row.moyen) }}</td>
+              <td class="num">{{ row.montant | cfa }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if ((d.topClients ?? []).length > 0) {
+    <div class="detail-section">
+      <h2>Top 5 clients</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th class="num">Commandes</th>
+            <th class="num">Total dépensé</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of d.topClients; track c.nom) {
+            <tr>
+              <td>{{ c.nom }} ({{ c.telephone }})</td>
+              <td class="num">{{ c.nbCommandes }}</td>
+              <td class="num">{{ c.totalDepense | cfa }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if ((d.topPrestations ?? []).length > 0) {
+    <div class="detail-section">
+      <h2>Top 5 prestations</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Prestation</th>
+            <th class="num">Réalisations</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of d.topPrestations; track p.nomTarif) {
+            <tr>
+              <td>{{ p.nomTarif }} ({{ p.typevetement }})</td>
+              <td class="num">{{ p.nbPrestations }}</td>
+              <td class="num">{{ p.total | cfa }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<!-- Exports -->
+<div class="detail-section">
+  <h2>Exports</h2>
+  <div class="form-grid">
+    <div class="field">
+      <label>Début</label>
+      <input type="date" [(ngModel)]="debut" />
+    </div>
+    <div class="field">
+      <label>Fin</label>
+      <input type="date" [(ngModel)]="fin" />
+    </div>
+  </div>
+  <div class="export-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+    <button class="btn" (click)="telecharger('commandes', 'pdf')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Commandes PDF
+    </button>
+    <button class="btn" (click)="telecharger('commandes', 'csv')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Commandes CSV
+    </button>
+    <button class="btn" (click)="telecharger('paiements', 'pdf')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Paiements PDF
+    </button>
+    <button class="btn" (click)="telecharger('paiements', 'csv')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Paiements CSV
+    </button>
+    <button class="btn" (click)="telecharger('caisse', 'pdf')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Caisse PDF
+    </button>
+    <button class="btn" (click)="telecharger('caisse', 'csv')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Caisse CSV
+    </button>
+    <button class="btn" (click)="telecharger('inventaire', 'pdf')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Inventaire PDF
+    </button>
+    <button class="btn" (click)="telecharger('fidelite', 'csv')" [disabled]="enCoursExport()">
+      <app-icon nom="download" [taille]="16" /> Fidélité CSV
+    </button>
+  </div>
+</div>
+
+<!-- SMS -->
+<div class="detail-section">
+  <h2>Historique des SMS</h2>
+  @if (smsListe().length === 0) {
+    <p class="empty">Aucun SMS envoyé.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Téléphone</th>
+          <th>Statut</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of smsListe(); track s.id) {
+          <tr>
+            <td>{{ s.dateEnvoi | dateFr }}</td>
+            <td>{{ s.type ?? '—' }}</td>
+            <td>{{ s.telephone }}</td>
+            <td>
+              <span class="pill" [class]="s.statut === 'ENVOYE' ? 'pill-green' : 'pill-red'">{{ s.statut }}</span>
+            </td>
+            <td style="max-width:300px">{{ s.message }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

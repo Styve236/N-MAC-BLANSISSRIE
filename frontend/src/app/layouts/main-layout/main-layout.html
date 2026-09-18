@@ -1,0 +1,82 @@
+<aside class="sidebar">
+  <div class="brand">
+    <span class="brand-logo"><app-icon nom="washing-machine" [taille]="28" /></span>
+    <div class="brand-text">
+      <strong>N-MAC</strong>
+      <span>Blanchisserie</span>
+    </div>
+  </div>
+
+  <nav class="nav">
+    @for (item of menusVisibles(); track item.route) {
+      <a
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <span class="nav-icon"><app-icon [nom]="item.icon" [taille]="18" /></span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="footer">
+    <div class="notifs">
+      <button class="bell" (click)="basculerNotifs()">
+        <app-icon nom="bell" [taille]="18" />
+        Notifications
+        @if (nonLues() > 0) {
+          <span class="bell-badge">{{ nonLues() > 9 ? '9+' : nonLues() }}</span>
+        }
+      </button>
+
+      @if (ouvertes()) {
+        <div class="notif-panel">
+          <div class="notif-head">
+            <strong>Notifications</strong>
+            @if (nonLues() > 0) {
+              <button class="btn btn-sm" (click)="toutLue()">Tout lire</button>
+            }
+          </div>
+          <div class="notif-list">
+            @if (notifs().length === 0) {
+              <p class="notif-vide">Aucune notification pour le moment.</p>
+            }
+            @for (n of notifs(); track n.id) {
+              <button class="notif-item" [class.non-lue]="!n.lue" (click)="ouvrirNotif(n)">
+                <span class="dot" [class.vide]="n.lue"></span>
+                <span class="notif-body">
+                  <span class="notif-message">{{ n.message }}</span>
+                  <span class="notif-meta">
+                    {{ heureRelative(n.dateCreation) }}
+                    @if (n.numeroTicket) {
+                      · {{ n.numeroTicket }}
+                    }
+                  </span>
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="user">
+      <div class="avatar">{{ nom().charAt(0).toUpperCase() }}</div>
+      <div class="user-info">
+        <strong>{{ nom() }}</strong>
+        <span>{{ role() }}</span>
+      </div>
+    </div>
+    <button class="logout-btn" (click)="deconnexion()">
+      <app-icon nom="logout" [taille]="16" />
+      Se déconnecter
+    </button>
+  </div>
+</aside>
+
+<main class="content">
+  <router-outlet />
+  <app-toast-host />
+</main>

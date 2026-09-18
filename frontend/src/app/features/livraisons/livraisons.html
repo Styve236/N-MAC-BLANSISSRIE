@@ -1,0 +1,131 @@
+<h1 class="page-title">
+  {{ estLivreur() ? 'Mes livraisons' : 'Livraisons' }}
+</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <p style="margin:0;color:#64748b">
+    @if (estLivreur()) {
+      Suivi des livraisons qui vous sont assignées.
+    } @else {
+      Gestion des livraisons (assignation livreur, suivi de statut).
+    }
+  </p>
+  <button class="btn" (click)="charger()">
+    <app-icon nom="download" [taille]="16" />
+    Rafraîchir
+  </button>
+</div>
+
+@if (assignId(); as id) {
+  <div class="form-card">
+    <h3>Assigner la livraison #{{ id }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Adresse de livraison <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="assignForm().adresseLivraison" placeholder="Ex : Bonabéri, rue du marché" />
+      </div>
+      @if (livreursOk()) {
+        <div class="field">
+          <label>Livreur <span style="color:#dc2626">*</span></label>
+          <select [(ngModel)]="assignForm().livreurId">
+            <option [ngValue]="undefined">— Choisir —</option>
+            @for (l of livreurs(); track l.idusers) {
+              <option [ngValue]="l.idusers">{{ l.nom }}</option>
+            }
+          </select>
+        </div>
+      } @else {
+        <div class="field">
+          <label>Livreur (ID) <span style="color:#dc2626">*</span></label>
+          <input type="number" min="1" [(ngModel)]="assignForm().livreurId" placeholder="ID du livreur" />
+          <small style="color:#94a3b8">Liste indisponible : rôle admin requis.</small>
+        </div>
+      }
+      <div class="field">
+        <label>Date de livraison prévue</label>
+        <input type="date" [(ngModel)]="assignForm().dateLivraisonPrevue" />
+      </div>
+      <div class="field">
+        <label>Frais de livraison (FCFA)</label>
+        <input type="number" min="0" [(ngModel)]="assignForm().fraisLivraison" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="assigner()" [disabled]="enCoursAssign()">
+        <app-icon nom="check" [taille]="16" />
+        {{ enCoursAssign() ? 'Assignation…' : 'Assigner' }}
+      </button>
+      <button class="btn" (click)="annulerAssign()">Annuler</button>
+    </div>
+  </div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (livraisons().length === 0) {
+  <p class="empty">
+    @if (estLivreur()) {
+      Aucune livraison assignée.
+    } @else {
+      Aucune livraison en attente.
+    }
+  </p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Client</th>
+          <th>Adresse</th>
+          <th class="num">Frais</th>
+          <th>Livreur</th>
+          <th>Prévue</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of livraisons(); track l.idcommande) {
+          <tr>
+            <td>{{ l.numeroTicket }}</td>
+            <td>{{ l.clientNom }}<br /><small>{{ l.clientTelephone }}</small></td>
+            <td>{{ l.adresseLivraison || '—' }}</td>
+            <td class="num">{{ (l.fraisLivraison ?? 0) | cfa }}</td>
+            <td>{{ l.livreurNom || '—' }}</td>
+            <td>{{ l.dateLivraisonPrevue ? (l.dateLivraisonPrevue | dateFr) : '—' }}</td>
+            <td><app-statut-badge [statut]="l.statutLivraison ?? ''" /></td>
+            <td>
+              <div class="actions">
+                <select [(ngModel)]="l.statutLivraison" (change)="appliquerStatut(l)">
+                  @for (s of statuts; track s) {
+                    <option [value]="s" [disabled]="s === 'LIVREE' && !l.payee">{{ libelleStatut(s) }}</option>
+                  }
+                </select>
+                @if (!estLivreur() && !l.livreurNom) {
+                  <button class="btn btn-sm" (click)="ouvrirAssign(l)" [disabled]="enCoursStatut()">
+                    <app-icon nom="edit" [taille]="14" />
+                    Assigner
+                  </button>
+                }
+                @if (estLivreur() && l.statutLivraison === 'LIVREE') {
+                  <button class="btn btn-sm" (click)="masquer(l)" [disabled]="enCoursMasquageId() === l.idcommande">
+                    <app-icon nom="trash" [taille]="14" />
+                    Retirer de ma liste
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

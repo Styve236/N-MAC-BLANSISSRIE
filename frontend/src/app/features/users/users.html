@@ -1,0 +1,123 @@
+<h1 class="page-title">Utilisateurs du personnel</h1>
+
+@if (message()) {
+  <div class="alert success">{{ message() }}</div>
+}
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
+
+<div class="toolbar">
+  <p style="margin:0;color:#64748b">Gestion des comptes du personnel (réceptionnistes, agents production, livreurs).</p>
+  <button class="btn btn-primary" (click)="ouvrirNouveau()">
+    <app-icon nom="plus" [taille]="16" />
+    Nouvel utilisateur
+  </button>
+</div>
+
+@if (showForm()) {
+  <div class="form-card">
+    <h3>Nouvel utilisateur</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nom <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="form().nom" placeholder="Ex : Pierre Kamga" />
+      </div>
+      <div class="field">
+        <label>Téléphone <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="form().tels" placeholder="Ex : 691234567" />
+      </div>
+      <div class="field">
+        <label>Email <span style="color:#dc2626">*</span></label>
+        <input [(ngModel)]="form().email" type="email" placeholder="Ex : pierre@nmac.cm" />
+      </div>
+      <div class="field">
+        <label>Rôle</label>
+        <select [(ngModel)]="form().role">
+          <option value="RECEPTIONNISTE">Réceptionniste</option>
+          <option value="AGENT_PRODUCTION">Agent production</option>
+          <option value="LIVREUR">Livreur</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mot de passe <small>(optionnel à la création)</small></label>
+        <input type="password" [(ngModel)]="form().password" placeholder="Laisser vide pour générer" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement()">
+        <app-icon nom="check" [taille]="16" />
+        {{ enregistrement() ? 'Création…' : 'Créer' }}
+      </button>
+      <button class="btn" (click)="showForm.set(false)">Annuler</button>
+    </div>
+  </div>
+}
+
+@if (showResetMdp()) {
+  <div class="form-card">
+    <h3>Réinitialiser le mot de passe</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nouveau mot de passe</label>
+        <input type="password" [(ngModel)]="resetPassword" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="confirmerReset()" [disabled]="enCoursReset()">
+        <app-icon nom="check" [taille]="16" />
+        Réinitialiser
+      </button>
+      <button class="btn" (click)="showResetMdp.set(false)">Annuler</button>
+    </div>
+  </div>
+}
+
+@if (enChargement()) {
+  <p>Chargement…</p>
+} @else if (utilisateurs().length === 0) {
+  <p class="empty">Aucun utilisateur.</p>
+} @else {
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Téléphone</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of utilisateurs(); track u.idusers) {
+          <tr>
+            <td>{{ u.nom }}</td>
+            <td>{{ u.tels }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.role }}</td>
+            <td>
+              <span class="pill" [class]="u.actif ? 'pill-green' : 'pill-red'">{{ u.actif ? 'Actif' : 'Inactif' }}</span>
+            </td>
+            <td class="actions">
+              <button class="btn btn-sm" (click)="ouvrirReset(u)">
+                <app-icon nom="phone" [taille]="14" />
+                Mot de passe
+              </button>
+              <button
+                class="btn btn-sm"
+                [class.btn-danger]="u.actif"
+                (click)="basculerStatut(u)"
+              >
+                <app-icon [nom]="u.actif ? 'trash' : 'check'" [taille]="14" />
+                {{ u.actif ? 'Désactiver' : 'Activer' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
