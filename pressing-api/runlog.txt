@@ -1,0 +1,150 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.pressing:pressing-api >----------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.1.1-SNAPSHOT:run (default-cli) > test-compile @ pressing-api >>>
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ pressing-api ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ pressing-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 106 source files with javac [debug parameters release 21] to target\classes
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by lombok.permit.Permit
+WARNING: Please consider reporting this to the maintainers of class lombok.permit.Permit
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[WARNING] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/Users/Users.java:[37,21] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/commande/Tarif.java:[34,33] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/inventaire/Vetements.java:[30,33] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/client/Client.java:[36,28] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[INFO] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/common/exception/GlobalExceptionHandler.java: C:\Users\steve authentique\Desktop\pressing-api\src\main\java\com\pressing\pressing\api\common\exception\GlobalExceptionHandler.java uses or overrides a deprecated API.
+[INFO] /C:/Users/steve authentique/Desktop/pressing-api/src/main/java/com/pressing/pressing/api/common/exception/GlobalExceptionHandler.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ pressing-api ---
+[INFO] skip non existing resourceDirectory C:\Users\steve authentique\Desktop\pressing-api\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ pressing-api ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:4.1.1-SNAPSHOT:run (default-cli) < test-compile @ pressing-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.1.1-SNAPSHOT:run (default-cli) @ pressing-api ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::       (v4.1.1-SNAPSHOT)
+
+2026-09-02T15:24:02.194+01:00  INFO 18188 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Starting PressingApiApplication using Java 25.0.3 with PID 18188 (C:\Users\steve authentique\Desktop\pressing-api\target\classes started by steve authentique in C:\Users\steve authentique\Desktop\pressing-api)
+2026-09-02T15:24:02.219+01:00  INFO 18188 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T15:24:19.090+01:00  INFO 18188 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T15:24:20.172+01:00  INFO 18188 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 993 ms. Found 12 JPA repository interfaces.
+2026-09-02T15:24:28.783+01:00  INFO 18188 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-09-02T15:24:28.960+01:00  INFO 18188 --- [pressing-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T15:24:28.962+01:00  INFO 18188 --- [pressing-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-02T15:24:29.469+01:00  INFO 18188 --- [pressing-api] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 26291 ms
+2026-09-02T15:24:32.184+01:00  INFO 18188 --- [pressing-api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-09-02T15:24:33.199+01:00  INFO 18188 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-09-02T15:24:39.023+01:00  INFO 18188 --- [pressing-api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T15:24:39.492+01:00  INFO 18188 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-02T15:24:43.999+01:00  INFO 18188 --- [pressing-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@598e5cb8
+2026-09-02T15:24:44.010+01:00  INFO 18188 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-02T15:24:44.778+01:00  INFO 18188 --- [pressing-api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/pressing_db?createDatabaseIfNotExist=true]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.4.3
+	Default catalog/schema: pressing_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-09-02T15:24:57.885+01:00  INFO 18188 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: 
+    alter table commande 
+       add column remise decimal(38,2)
+Hibernate: 
+    create table historique_point (
+        idpoint bigint not null auto_increment,
+        client_id bigint not null,
+        commande_id bigint,
+        date datetime(6),
+        description varchar(500),
+        points integer not null,
+        type varchar(255) not null,
+        primary key (idpoint)
+    ) engine=InnoDB
+2026-09-02T15:24:59.221+01:00  INFO 18188 --- [pressing-api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T15:25:00.180+01:00  INFO 18188 --- [pressing-api] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-02T15:25:02.959+01:00  INFO 18188 --- [pressing-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name utilisateurDetailsService
+2026-09-02T15:25:15.217+01:00  WARN 18188 --- [pressing-api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-02T15:25:19.171+01:00  INFO 18188 --- [pressing-api] [           main] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-09-02T15:25:23.689+01:00  INFO 18188 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-09-02T15:25:23.838+01:00  INFO 18188 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Started PressingApiApplication in 89.933 seconds (process running for 103.173)
+Hibernate: 
+    select
+        u1_0.idusers 
+    from
+        users u1_0 
+    where
+        u1_0.email=? 
+    limit
+        ?
+2026-09-02T15:26:04.105+01:00  INFO 18188 --- [pressing-api] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-02T15:26:04.110+01:00  INFO 18188 --- [pressing-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-02T15:26:04.121+01:00  INFO 18188 --- [pressing-api] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 10 ms
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  12:28 min
+[INFO] Finished at: 2026-09-02T15:33:16+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.1.1-SNAPSHOT:run (default-cli) on project pressing-api: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

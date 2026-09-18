@@ -1,0 +1,66 @@
+package com.pressing.pressing.api.controller;
+import com.pressing.pressing.api.entite.Tarif;
+import com.pressing.pressing.api.entite.TypeNettoyage;
+import com.pressing.pressing.api.service.TarifService;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+
+
+
+@RestController
+@RequestMapping("/api/tarifs")
+@RequiredArgsConstructor
+public class TarifController {
+
+    private final TarifService tarifService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public Tarif creer(@RequestBody Tarif tarif) {
+        return tarifService.creer(tarif);
+    }
+
+    @GetMapping
+    public Page<Tarif> lister(
+            @RequestParam(required = false) TypeNettoyage typeNettoyage,
+            @PageableDefault(size = 20, sort = "nom") Pageable pageable) {
+        return tarifService.listerPaginer(typeNettoyage, pageable);
+    }
+
+    @GetMapping("/actifs")
+    public List<Tarif> listerActifs() {
+        return tarifService.listerActifs();
+    }
+
+    @GetMapping("/{id}")
+    public Tarif consulter(@PathVariable Long id) {
+        return tarifService.consulter(id);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Tarif modifier(@PathVariable Long id, @RequestBody Tarif tarif) {
+        return tarifService.modifier(id, tarif);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void desactiver(@PathVariable Long id) {
+        tarifService.desactiver(id);
+    }
+
+    @PatchMapping("/{id}/activer")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Tarif activer(@PathVariable Long id) {
+        return tarifService.activer(id);
+    }
+}

@@ -1,0 +1,375 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< com.pressing:pressing-api >----------------------
+[INFO] Building  0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.1.1-SNAPSHOT:run (default-cli) > test-compile @ pressing-api >>>
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ pressing-api ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ pressing-api ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ pressing-api ---
+[INFO] skip non existing resourceDirectory C:\Users\steve authentique\Desktop\pressing-api\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ pressing-api ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:4.1.1-SNAPSHOT:run (default-cli) < test-compile @ pressing-api <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.1.1-SNAPSHOT:run (default-cli) @ pressing-api ---
+Downloading from spring-snapshots: https://repo.spring.io/snapshot/org/springframework/boot/spring-boot-buildpack-platform/4.1.1-SNAPSHOT/maven-metadata.xml
+Progress (1): 0.5/2.4 kBProgress (1): 1.9/2.4 kBProgress (1): 2.4 kB                        Downloaded from spring-snapshots: https://repo.spring.io/snapshot/org/springframework/boot/spring-boot-buildpack-platform/4.1.1-SNAPSHOT/maven-metadata.xml (2.4 kB at 1.2 kB/s)
+Downloading from spring-snapshots: https://repo.spring.io/snapshot/org/springframework/boot/spring-boot-loader-tools/4.1.1-SNAPSHOT/maven-metadata.xml
+Progress (1): 0.5/2.4 kBProgress (1): 1.9/2.4 kBProgress (1): 2.4 kB                        Downloaded from spring-snapshots: https://repo.spring.io/snapshot/org/springframework/boot/spring-boot-loader-tools/4.1.1-SNAPSHOT/maven-metadata.xml (2.4 kB at 9.2 kB/s)
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::       (v4.1.1-SNAPSHOT)
+
+2026-09-16T10:11:48.661+01:00  INFO 9736 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Starting PressingApiApplication using Java 25.0.3 with PID 9736 (C:\Users\steve authentique\Desktop\pressing-api\target\classes started by steve authentique in C:\Users\steve authentique\Desktop\pressing-api)
+2026-09-16T10:11:48.668+01:00  INFO 9736 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-09-16T10:11:51.041+01:00  INFO 9736 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-16T10:11:51.294+01:00  INFO 9736 --- [pressing-api] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 227 ms. Found 13 JPA repository interfaces.
+2026-09-16T10:11:53.515+01:00  INFO 9736 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8081 (http)
+2026-09-16T10:11:53.567+01:00  INFO 9736 --- [pressing-api] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-16T10:11:53.569+01:00  INFO 9736 --- [pressing-api] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-09-16T10:11:53.787+01:00  INFO 9736 --- [pressing-api] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 4943 ms
+2026-09-16T10:11:54.444+01:00  INFO 9736 --- [pressing-api] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-09-16T10:11:54.668+01:00  INFO 9736 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-09-16T10:11:56.462+01:00  INFO 9736 --- [pressing-api] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-16T10:11:56.772+01:00  INFO 9736 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-16T10:12:00.709+01:00  INFO 9736 --- [pressing-api] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@153c6603
+2026-09-16T10:12:00.714+01:00  INFO 9736 --- [pressing-api] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-16T10:12:01.112+01:00  INFO 9736 --- [pressing-api] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mysql://localhost:3306/pressing_db?createDatabaseIfNotExist=true]
+	Database driver: MySQL Connector/J
+	Database dialect: MySQLDialect
+	Database version: 8.4.3
+	Default catalog/schema: pressing_db/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-09-16T10:12:06.941+01:00  INFO 9736 --- [pressing-api] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-16T10:12:07.234+01:00  INFO 9736 --- [pressing-api] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-16T10:12:07.499+01:00  INFO 9736 --- [pressing-api] [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-16T10:12:08.446+01:00  INFO 9736 --- [pressing-api] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name utilisateurDetailsService
+2026-09-16T10:12:12.980+01:00  WARN 9736 --- [pressing-api] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-16T10:12:13.978+01:00  INFO 9736 --- [pressing-api] [           main] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-09-16T10:12:14.993+01:00  INFO 9736 --- [pressing-api] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8081 (http) with context path '/'
+2026-09-16T10:12:15.011+01:00  INFO 9736 --- [pressing-api] [           main] c.p.pressing.api.PressingApiApplication  : Started PressingApiApplication in 27.476 seconds (process running for 28.49)
+Hibernate: 
+    select
+        u1_0.idusers 
+    from
+        users u1_0 
+    where
+        u1_0.email=? 
+    limit
+        ?
+2026-09-16T10:15:01.139+01:00  INFO 9736 --- [pressing-api] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-16T10:15:01.141+01:00  INFO 9736 --- [pressing-api] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-16T10:15:01.143+01:00  INFO 9736 --- [pressing-api] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    insert 
+    into
+        refresh_token
+        (created_at, expires_at, revoked, token, user_id) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        date(p1_0.date_paiement)=?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        date(p1_0.date_paiement)=?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        p1_0.date_paiement between ? and ?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        p1_0.date_paiement between ? and ?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        p1_0.date_paiement between ? and ?
+Hibernate: 
+    select
+        sum(p1_0.montant) 
+    from
+        paiement p1_0 
+    where
+        p1_0.date_paiement between ? and ?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(c1_0.idcommande) 
+    from
+        commande c1_0 
+    where
+        c1_0.statut=?
+Hibernate: 
+    select
+        count(*) 
+    from
+        commande c1_0
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        c1_0.livreur_id,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    where
+        c1_0.date_recuperation_prevue is not null 
+        and c1_0.date_recuperation_prevue<? 
+        and c1_0.statut not in (?, ?, ?) 
+    order by
+        c1_0.date_recuperation_prevue
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        c1_0.idcommande,
+        c1_0.adresse_livraison,
+        c1_0.client_id,
+        c1_0.date_creation,
+        c1_0.date_livraison_prevue,
+        c1_0.date_livraison_reelle,
+        c1_0.date_recuperation_prevue,
+        c1_0.date_retrait_reelle,
+        c1_0.frais_livraison,
+        c1_0.livreur_id,
+        c1_0.montant_paye,
+        c1_0.montant_total,
+        c1_0.numero_ticket,
+        c1_0.poids_total,
+        c1_0.remise,
+        c1_0.statut,
+        c1_0.statut_livraison 
+    from
+        commande c1_0 
+    where
+        (
+            coalesce(c1_0.montant_total, 0)-coalesce(c1_0.remise, 0)
+        )>coalesce(c1_0.montant_paye, 0)
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        u1_0.idusers,
+        u1_0.actif,
+        u1_0.date_creation,
+        u1_0.email,
+        u1_0.nom,
+        u1_0.password,
+        u1_0.role,
+        u1_0.tels 
+    from
+        users u1_0 
+    where
+        u1_0.idusers=?
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        c1_0.idclient,
+        c1_0.nom,
+        c1_0.points_fidelites,
+        c1_0.quartier,
+        c1_0.telephone,
+        c1_0.ville 
+    from
+        client c1_0 
+    where
+        c1_0.idclient=?
+Hibernate: 
+    select
+        v1_0.idvetement,
+        v1_0.libelle,
+        v1_0.quantite_stock,
+        v1_0.typedevetement 
+    from
+        vetements v1_0 
+    where
+        v1_0.quantite_stock<=?
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  04:40 min
+[INFO] Finished at: 2026-09-16T10:16:10+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:4.1.1-SNAPSHOT:run (default-cli) on project pressing-api: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

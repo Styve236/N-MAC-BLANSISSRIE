@@ -1,0 +1,41 @@
+package com.pressing.pressing.api.entite;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.pressing.pressing.api.entite.Commande;
+import jakarta.persistence.*;
+import lombok.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+
+
+
+
+@Entity
+@Table(name = "paiement")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Paiement {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idpaiement;
+
+    private String referenceTransaction;
+    private BigDecimal montant;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MoyenPaiement moyenPaiement;
+
+    @Enumerated(EnumType.STRING)
+    private TypePaiement typePaiement;
+
+    private LocalDateTime datePaiement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commande_id")
+    @JsonIgnore
+    private Commande commande;
+}
