@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+    import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { Icon } from '../../shared/icon/icon';
+import { Pagination } from '../../shared/pagination/pagination';
 import { typeNettoyageOptions } from '../../shared/libelles';
 import { TarifService } from '../../core/services/tarif.service';
 import { TenantService } from '../../core/services/tenant.service';
@@ -12,7 +13,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
 
 @Component({
   selector: 'app-tarifs',
-  imports: [FormsModule, CfaPipe, Icon],
+  imports: [FormsModule, CfaPipe, Icon, Pagination],
   templateUrl: './tarifs.html',
   styleUrl: '../_feature.scss',
 })
@@ -27,6 +28,7 @@ export class Tarifs {
   readonly enChargement = signal(true);
   readonly totalPages = signal(0);
   readonly page = signal(0);
+  readonly taille = signal(20);
   readonly filtreType = signal('');
   readonly erreur = signal('');
   readonly message = signal('');
@@ -41,7 +43,7 @@ export class Tarifs {
 
   charger(): void {
     this.enChargement.set(true);
-    this.service.lister(this.filtreType() || undefined, this.page(), 20).subscribe({
+    this.service.lister(this.filtreType() || undefined, this.page(), this.taille()).subscribe({
       next: (p) => {
         this.tarifs.set(p.content ?? []);
         this.totalPages.set(p.totalPages ?? 0);
@@ -56,12 +58,15 @@ export class Tarifs {
     this.charger();
   }
 
-  allerPage(delta: number): void {
-    const p = this.page() + delta;
-    if (p >= 0 && p < this.totalPages()) {
-      this.page.set(p);
-      this.charger();
-    }
+  changerPage(p: number): void {
+    this.page.set(p);
+    this.charger();
+  }
+
+  changerTaille(t: number): void {
+    this.taille.set(t);
+    this.page.set(0);
+    this.charger();
   }
 
   ouvrirNouveau(): void {

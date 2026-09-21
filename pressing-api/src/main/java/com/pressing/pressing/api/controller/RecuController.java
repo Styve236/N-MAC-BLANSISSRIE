@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/commandes/{id}/recu")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Recus", description = "Generation et consultation des recus")
 public class RecuController {
 
     private final RecuService recuService;

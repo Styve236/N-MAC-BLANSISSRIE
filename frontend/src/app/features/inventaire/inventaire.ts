@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Icon } from '../../shared/icon/icon';
+import { Pagination } from '../../shared/pagination/pagination';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { InventaireService } from '../../core/services/inventaire.service';
 import { TenantService } from '../../core/services/tenant.service';
@@ -16,7 +17,7 @@ interface LigneBonForm {
 
 @Component({
   selector: 'app-inventaire',
-  imports: [FormsModule, Icon, DateFrPipe],
+  imports: [FormsModule, Icon, DateFrPipe, Pagination],
   templateUrl: './inventaire.html',
   styleUrl: '../_feature.scss',
 })
@@ -32,6 +33,24 @@ export class Inventaire {
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
+
+  readonly vetementPage = signal(0);
+  readonly vetementTaille = signal(20);
+  readonly vetementTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.vetements().length / this.vetementTaille())),
+  );
+  readonly vetementsVisible = computed(() => {
+    const debut = this.vetementPage() * this.vetementTaille();
+    return this.vetements().slice(debut, debut + this.vetementTaille());
+  });
+
+  readonly bonPage = signal(0);
+  readonly bonTaille = signal(10);
+  readonly bonTotalPages = computed(() => Math.max(1, Math.ceil(this.bons().length / this.bonTaille())));
+  readonly bonsVisible = computed(() => {
+    const debut = this.bonPage() * this.bonTaille();
+    return this.bons().slice(debut, debut + this.bonTaille());
+  });
 
   readonly showVetementForm = signal(false);
   readonly vetementForm = signal<VetementDTO>({});
@@ -53,6 +72,7 @@ export class Inventaire {
 
   chargerVetements(): void {
     this.enChargement.set(true);
+    this.vetementPage.set(0);
     this.service.vetements().subscribe({
       next: (v) => {
         this.vetements.set(v ?? []);
@@ -63,6 +83,7 @@ export class Inventaire {
   }
 
   chargerBons(): void {
+    this.bonPage.set(0);
     this.service.bons().subscribe({
       next: (b) => this.bons.set(b ?? []),
       error: () => undefined,
@@ -72,6 +93,24 @@ export class Inventaire {
   nettoyerMessages(): void {
     this.erreur.set('');
     this.message.set('');
+  }
+
+  changerVetementPage(p: number): void {
+    this.vetementPage.set(p);
+  }
+
+  changerVetementTaille(t: number): void {
+    this.vetementTaille.set(t);
+    this.vetementPage.set(0);
+  }
+
+  changerBonPage(p: number): void {
+    this.bonPage.set(p);
+  }
+
+  changerBonTaille(t: number): void {
+    this.bonTaille.set(t);
+    this.bonPage.set(0);
   }
 
   ouvrirNouveauVetement(): void {

@@ -1,3 +1,56 @@
+:root {
+  color-scheme: light;
+
+  --bg: #f5f8f9;
+  --panel: #ffffff;
+  --line: #e3e9eb;
+  --ink: #16232e;
+  --ink-soft: #5b6b76;
+
+  --teal: #1e8e85;
+  --teal-soft: #dcefec;
+
+  --indigo: #233a5e;
+
+  --coral: #e8604c;
+  --coral-soft: #fbe3de;
+
+  --amber: #d69a2d;
+  --amber-soft: #fbefd9;
+
+  --sidebar-bg: #16232e;
+  --sidebar-line: #243342;
+  --sidebar-ink: #eaf1f3;
+  --sidebar-muted: #93a5b1;
+  --sidebar-hover: #243342;
+
+  --primaire: var(--teal);
+  --secondaire: var(--indigo);
+  --danger: var(--coral);
+  --avertissement: var(--amber);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0f1720;
+  --panel: #17222c;
+  --line: #243342;
+  --ink: #eaf1f3;
+  --ink-soft: #93a5b1;
+
+  --teal: #3fc2b6;
+  --teal-soft: #153a38;
+
+  --indigo: #8fb0dc;
+
+  --coral: #f07a63;
+  --coral-soft: #3a2320;
+
+  --amber: #e6b24e;
+  --amber-soft: #3a2e13;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,8 +58,9 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--bg);
+  color: var(--ink);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 button,
@@ -18,18 +72,19 @@ textarea {
 
 /* Boutons */
 .btn {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #334155;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 
   &:hover {
-    background: #f1f5f9;
+    background: var(--bg);
+    color: var(--ink);
   }
 
   &:disabled {
@@ -39,32 +94,38 @@ textarea {
 }
 
 .btn-primary {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--teal);
+  border-color: var(--teal);
   color: #fff;
 
   &:hover {
-    background: #1d4ed8;
+    background: var(--teal);
+    filter: brightness(0.92);
+    color: #fff;
   }
 }
 
 .btn-danger {
-  background: #dc2626;
-  border-color: #dc2626;
+  background: var(--coral);
+  border-color: var(--coral);
   color: #fff;
 
   &:hover {
-    background: #b91c1c;
+    background: var(--coral);
+    filter: brightness(0.92);
+    color: #fff;
   }
 }
 
 .btn-success {
-  background: #16a34a;
-  border-color: #16a34a;
+  background: var(--teal);
+  border-color: var(--teal);
   color: #fff;
 
   &:hover {
-    background: #15803d;
+    background: var(--teal);
+    filter: brightness(0.92);
+    color: #fff;
   }
 }
 
@@ -82,7 +143,7 @@ textarea {
   label {
     font-size: 13px;
     font-weight: 600;
-    color: #475569;
+    color: var(--ink-soft);
   }
 
   input,
@@ -90,15 +151,15 @@ textarea {
   textarea {
     padding: 9px 12px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--line);
     font-size: 14px;
-    background: #fff;
-    color: #0f172a;
+    background: var(--panel);
+    color: var(--ink);
 
     &:focus {
       outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgb(37 99 235 / 0.15);
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
     }
   }
 }
@@ -111,13 +172,13 @@ textarea {
   margin-bottom: 14px;
 
   &.error {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--coral-soft);
+    color: var(--coral);
   }
 
   &.success {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--teal-soft);
+    color: var(--teal);
   }
 }
 
@@ -153,8 +214,8 @@ textarea {
 
 /* Carte formulaire */
 .form-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -163,6 +224,7 @@ textarea {
   h3 {
     margin: 0 0 16px;
     font-size: 16px;
+    color: var(--ink);
   }
 }
 

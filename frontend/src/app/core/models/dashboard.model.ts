@@ -43,4 +43,6 @@ export interface DashboardResumeDTO {
   commandesEnRetard: AlerteCommandeRetardDTO[];
   clientsImpayes: AlerteClientImpayeDTO[];
   stockCritique: AlerteStockCritiqueDTO[];
+  commandesParStatut?: Record<string, number>;
+  encaissementParMoyen?: Record<string, number>;
 }

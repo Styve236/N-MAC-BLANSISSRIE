@@ -62,6 +62,11 @@
       }
     </div>
 
+    <button class="theme-btn" (click)="basculerTheme()" [title]="themeSombre() ? 'Passer au mode clair' : 'Passer au mode sombre'">
+      <app-icon [nom]="themeSombre() ? 'soleil' : 'lune'" [taille]="16" />
+      {{ themeSombre() ? 'Mode clair' : 'Mode sombre' }}
+    </button>
+
     <div class="user">
       <div class="avatar">{{ nom().charAt(0).toUpperCase() }}</div>
       <div class="user-info">

@@ -47,7 +47,8 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public : login, page de test, reçus imprimables (lien client), affichage des photos
+                        // Public : login, page de test, reçus imprimables (lien client), affichage des photos,
+                        // et la documentation Swagger/OpenAPI (pages HTML + JSON/YAML)
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/refresh",
@@ -55,7 +56,13 @@ public class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/recu/**",
-                                "/api/photos/*/fichier"
+                                "/api/photos/*/fichier",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/webjars/**"
                         ).permitAll()
                         // Tout le reste de l'API exige un jeton JWT valide
                         .anyRequest().authenticated()

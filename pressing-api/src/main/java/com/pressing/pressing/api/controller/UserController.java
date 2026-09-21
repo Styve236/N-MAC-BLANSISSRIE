@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Utilisateurs", description = "Comptes employes et roles")
 public class UserController {
 
     private final UserService userService;

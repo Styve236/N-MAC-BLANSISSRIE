@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RequestMapping("/api/exports")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Rapports / Exports", description = "Exports PDF et CSV")
 public class ExportController {
 
     private final ExportService exportService;

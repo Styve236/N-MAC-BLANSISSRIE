@@ -13,11 +13,12 @@ import {
 import { StatutCommande, StatutLivraison, STATUT_COMMANDE } from '../../core/config/constants';
 import { CommandeService } from '../../core/services/commande.service';
 import { PaiementService } from '../../core/services/paiement.service';
+import { PhotoService } from '../../core/services/photo.service';
 import { ExportService, telechargerBlob } from '../../core/services/export.service';
 import { LivraisonService } from '../../core/services/livraison.service';
 import { UserService } from '../../core/services/user.service';
 import { TenantService } from '../../core/services/tenant.service';
-import { Commande, StatutPaiementDTO } from '../../core/models/commande.model';
+import { Commande, LigneCommandeLegere, Photo, StatutPaiementDTO } from '../../core/models/commande.model';
 import { PaiementDTO, PaiementResponseDTO } from '../../core/models/paiement.model';
 import { LivraisonRequestDTO } from '../../core/models/livraison.model';
 import { UserDTO } from '../../core/models/users.model';
@@ -34,6 +35,7 @@ export class DetailCommande {
   private readonly router = inject(Router);
   private readonly cmd = inject(CommandeService);
   private readonly paiement = inject(PaiementService);
+  private readonly photos = inject(PhotoService);
   private readonly exports = inject(ExportService);
   private readonly livraisons = inject(LivraisonService);
   private readonly users = inject(UserService);
@@ -44,6 +46,7 @@ export class DetailCommande {
 
   readonly commande = signal<Commande | null>(null);
   readonly statutPaiement = signal<StatutPaiementDTO | null>(null);
+  readonly photosParLigne = signal<Record<number, Photo[]>>({});
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
@@ -75,6 +78,7 @@ export class DetailCommande {
       next: (c) => {
         this.commande.set(c);
         this.nouveauStatut.set(c.statut ?? '');
+        this.chargerPhotos();
         this.chargerPaiement(id);
         this.chargerLivreurs();
       },
@@ -82,6 +86,45 @@ export class DetailCommande {
         this.enChargement.set(false);
         this.router.navigate(['/commandes']);
       },
+    });
+  }
+
+  private chargerPhotos(): void {
+    const ids = (this.commande()?.lignes ?? [])
+      .map((l) => l.idligne)
+      .filter((id): id is number => !!id);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      this.photos.lister(id).subscribe({
+        next: (liste) =>
+          this.photosParLigne.update((m) => ({ ...m, [id]: liste ?? [] })),
+        error: () =>
+          this.photosParLigne.update((m) => ({ ...m, [id]: [] })),
+      });
+    }
+  }
+
+  photosDe(l: LigneCommandeLegere | undefined): Photo[] {
+    return l?.idligne != null ? (this.photosParLigne()[l.idligne] ?? []) : [];
+  }
+
+  fichierUrl(idphoto: number): string {
+    return this.photos.fichierUrl(idphoto);
+  }
+
+  supprimerPhoto(idphoto: number): void {
+    if (!window.confirm('Supprimer cette photo ?')) return;
+    this.photos.supprimer(idphoto).subscribe({
+      next: () => {
+        this.photosParLigne.update((m) => {
+          const nouveau: Record<number, Photo[]> = {};
+          for (const [cle, liste] of Object.entries(m)) {
+            nouveau[Number(cle)] = liste.filter((p) => p.idphoto !== idphoto);
+          }
+          return nouveau;
+        });
+      },
+      error: (err) => this.erreur.set(extraireMessageErreur(err)),
     });
   }
 

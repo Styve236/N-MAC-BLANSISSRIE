@@ -69,7 +69,21 @@
             <td class="num">{{ c.resteAPayer | cfa }}</td>
             <td>
               <div class="statut-cell">
-                <app-statut-badge [statut]="c.statut ?? ''" />
+                @if (peutGererStatuts()) {
+                  <select
+                    class="statut-select"
+                    [ngModel]="c.statut"
+                    (ngModelChange)="changerStatut(c, $event)"
+                    [disabled]="enChargement()"
+                  >
+                    <option [ngValue]="null" disabled>Sélectionner…</option>
+                    @for (s of statuts; track s) {
+                      <option [ngValue]="s">{{ libelleStatut(s) }}</option>
+                    }
+                  </select>
+                } @else {
+                  <app-statut-badge [statut]="c.statut ?? ''" />
+                }
                 @if ((c.resteAPayer ?? 0) > 0) {
                   <span class="pill pill-red">Impayé</span>
                 }
@@ -83,12 +97,14 @@
       </tbody>
     </table>
 
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn btn-sm" (click)="allerPage(-1)" [disabled]="page() === 0">Précédent</button>
-        <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
-        <button class="btn btn-sm" (click)="allerPage(1)" [disabled]="page() >= totalPages() - 1">Suivant</button>
-      </div>
-    }
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [pageSize]="taille()"
+      [tailles]="[10, 20, 50]"
+      [desactive]="enChargement()"
+      (pageChange)="changerPage($event)"
+      (pageSizeChange)="changerTaille($event)"
+    />
   </div>
 }

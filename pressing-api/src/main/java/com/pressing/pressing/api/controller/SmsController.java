@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "SMS", description = "Envoi et historique des SMS")
 public class SmsController {
 
     private final SmsNotificationRepository smsNotificationRepository;

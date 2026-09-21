@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Tableau de bord", description = "Resume d'activite")
 public class DashboardController {
 
     private final DashboardService dashboardService;

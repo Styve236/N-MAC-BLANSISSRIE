@@ -97,14 +97,35 @@
             <td>{{ c.quartier || '—' }}</td>
             <td class="num">{{ c.points_fidelites ?? 0 }}</td>
             <td>
-              <button class="btn btn-sm" (click)="voirCommandes(c)">
-                <app-icon nom="commandes" [taille]="14" />
-                Commandes
-              </button>
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn btn-sm" (click)="voirCommandes(c)">
+                  <app-icon nom="commandes" [taille]="14" />
+                  Commandes
+                </button>
+                @if (peutEcrire()) {
+                  <button
+                    class="btn btn-sm btn-danger"
+                    (click)="supprimer(c)"
+                    [disabled]="suppressionId() === c.id"
+                  >
+                    <app-icon nom="trash" [taille]="14" />
+                    {{ suppressionId() === c.id ? 'Suppression…' : 'Supprimer' }}
+                  </button>
+                }
+              </div>
             </td>
           </tr>
         }
       </tbody>
     </table>
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [pageSize]="taille()"
+      [tailles]="[10, 20, 50]"
+      [desactive]="enChargement()"
+      (pageChange)="changerPage($event)"
+      (pageSizeChange)="changerTaille($event)"
+    />
   </div>
 }

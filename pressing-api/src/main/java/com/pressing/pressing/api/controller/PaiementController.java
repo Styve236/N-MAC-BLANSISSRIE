@@ -19,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Paiements", description = "Encaissements et moyens de paiement")
 public class PaiementController {
 
     private final PaiementService paiementService;

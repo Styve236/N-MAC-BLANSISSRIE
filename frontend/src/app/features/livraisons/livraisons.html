@@ -93,7 +93,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (l of livraisons(); track l.idcommande) {
+        @for (l of livraisonsVisible(); track l.idcommande) {
           <tr>
             <td>{{ l.numeroTicket }}</td>
             <td>{{ l.clientNom }}<br /><small>{{ l.clientTelephone }}</small></td>
@@ -127,5 +127,14 @@
         }
       </tbody>
     </table>
+
+    <app-pagination
+      [page]="livraisonPage()"
+      [totalPages]="livraisonTotalPages()"
+      [pageSize]="livraisonTaille()"
+      [tailles]="[10, 20, 50]"
+      (pageChange)="changerLivraisonPage($event)"
+      (pageSizeChange)="changerLivraisonTaille($event)"
+    />
   </div>
 }

@@ -27,6 +27,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/commandes")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Commandes", description = "Creation, suivi et traitement des commandes")
 public class CommandeController {
     private final CommandeService commandeService;
     private final PaiementService paiementService;

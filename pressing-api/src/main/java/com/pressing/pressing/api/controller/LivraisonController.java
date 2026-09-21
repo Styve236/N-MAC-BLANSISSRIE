@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 @RestController
 @RequestMapping("/api/livraisons")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Livraisons", description = "Planification et suivi des livraisons")
 public class LivraisonController {
 
     private final LivraisonService livraisonService;

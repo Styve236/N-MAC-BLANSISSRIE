@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Notifications", description = "Notifications internes")
 public class NotificationController {
 
     private final NotificationService notificationService;

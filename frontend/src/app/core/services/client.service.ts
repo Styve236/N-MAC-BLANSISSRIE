@@ -21,15 +21,19 @@ export class ClientService {
     return this.http.get<Client>(`${API_URL}/api/clients/${id}`);
   }
 
+  supprimer(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/api/clients/${id}`);
+  }
+
   rechercherParTelephone(telephone: string): Observable<Client> {
     return this.http.get<Client>(`${API_URL}/api/clients/recherche/telephone`, {
       params: new HttpParams().set('telephone', telephone),
     });
   }
 
-  rechercherParNom(nom: string): Observable<any> {
+  rechercherParNom(nom: string, page = 0, size = 20): Observable<any> {
     return this.http.get(`${API_URL}/api/clients/recherche/nom`, {
-      params: new HttpParams().set('nom', nom),
+      params: new HttpParams().set('nom', nom).set('page', page).set('size', size),
     });
   }
 }

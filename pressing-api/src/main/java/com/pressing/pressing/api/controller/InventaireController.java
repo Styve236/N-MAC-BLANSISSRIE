@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/inventaire")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Inventaire", description = "Articles et etat des stocks")
 public class InventaireController {
 
     private final InventaireService inventaireService;

@@ -96,6 +96,21 @@
             <input [(ngModel)]="ligne.description" placeholder="Ex : 3 boutons à recoudre" />
           </div>
         </div>
+        <div class="ligne-photos">
+          @for (p of ligne.photos; track $index) {
+            <div class="photo-preview">
+              <img [src]="p.apercu" alt="Photo article" />
+              <button class="photo-retirer" type="button" (click)="retirerPhoto(i, $index)">
+                <app-icon nom="x" [taille]="12" />
+              </button>
+            </div>
+          }
+          <label class="btn btn-sm photo-ajouter">
+            <app-icon nom="camera" [taille]="14" />
+            Photo (max 10 Mo)
+            <input type="file" accept="image/*" multiple (change)="onPhotosSelectionnes(i, $event)" />
+          </label>
+        </div>
         <div class="ligne-actions">
           <div class="ligne-total">
             Sous-total : <strong>{{ montantLigne(ligne) | cfa }}</strong>

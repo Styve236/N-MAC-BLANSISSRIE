@@ -74,7 +74,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (v of vetements(); track v.idvetement) {
+          @for (v of vetementsVisible(); track v.idvetement) {
             <tr>
               <td>{{ v.libelle }}</td>
               <td>{{ v.typedevetement ?? '—' }}</td>
@@ -99,6 +99,15 @@
           }
         </tbody>
       </table>
+
+      <app-pagination
+        [page]="vetementPage()"
+        [totalPages]="vetementTotalPages()"
+        [pageSize]="vetementTaille()"
+        [tailles]="[10, 20, 50]"
+        (pageChange)="changerVetementPage($event)"
+        (pageSizeChange)="changerVetementTaille($event)"
+      />
     </div>
   }
 }
@@ -192,6 +201,15 @@
           }
         </tbody>
       </table>
+
+      <app-pagination
+        [page]="bonPage()"
+        [totalPages]="bonTotalPages()"
+        [pageSize]="bonTaille()"
+        [tailles]="[10, 20, 50]"
+        (pageChange)="changerBonPage($event)"
+        (pageSizeChange)="changerBonTaille($event)"
+      />
     </div>
   }
 }

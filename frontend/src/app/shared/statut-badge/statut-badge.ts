@@ -44,10 +44,10 @@ const LIBELLES: Record<string, string> = {
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
-    .pill-blue { background: #dbeafe; color: #1d4ed8; }
-    .pill-amber { background: #fef3c7; color: #b45309; }
-    .pill-green { background: #dcfce7; color: #15803d; }
-    .pill-red { background: #fee2e2; color: #b91c1c; }
+    .pill-blue { background: color-mix(in srgb, var(--indigo) 12%, transparent); color: var(--indigo); }
+    .pill-amber { background: var(--amber-soft); color: var(--amber); }
+    .pill-green { background: var(--teal-soft); color: var(--teal); }
+    .pill-red { background: var(--coral-soft); color: var(--coral); }
   `,
 })
 export class StatutBadge {

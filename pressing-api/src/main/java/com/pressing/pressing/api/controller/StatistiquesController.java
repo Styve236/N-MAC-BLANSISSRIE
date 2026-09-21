@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/statistiques")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Statistiques", description = "Indicateurs et statistiques")
 public class StatistiquesController {
 
     private final StatistiquesService statistiquesService;

@@ -1,15 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { Icon } from '../../shared/icon/icon';
+import { Pagination } from '../../shared/pagination/pagination';
 import { CaisseService } from '../../core/services/caisse.service';
 import { ClotureDTO, DetailParMoyen } from '../../core/models/caisse.model';
 import { extraireMessageErreur } from '../../core/interceptors/error.interceptor';
 
 @Component({
   selector: 'app-caisse',
-  imports: [FormsModule, CfaPipe, DateFrPipe, Icon],
+  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, Pagination],
   templateUrl: './caisse.html',
   styleUrl: '../_feature.scss',
 })
@@ -22,6 +23,14 @@ export class Caisse {
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
+
+  readonly histPage = signal(0);
+  readonly histTaille = signal(10);
+  readonly histTotalPages = computed(() => Math.max(1, Math.ceil(this.historique().length / this.histTaille())));
+  readonly historiqueVisible = computed(() => {
+    const debut = this.histPage() * this.histTaille();
+    return this.historique().slice(debut, debut + this.histTaille());
+  });
 
   readonly montantEnCaisse = signal<number | null>(null);
   readonly observations = signal('');
@@ -52,6 +61,7 @@ export class Caisse {
   }
 
   chargerHistorique(): void {
+    this.histPage.set(0);
     this.service.historique().subscribe({
       next: (h) => this.historique.set(h ?? []),
       error: () => undefined,
@@ -115,5 +125,14 @@ export class Caisse {
       },
       error: (err) => this.erreur.set(extraireMessageErreur(err)),
     });
+  }
+
+  changerHistPage(p: number): void {
+    this.histPage.set(p);
+  }
+
+  changerHistTaille(t: number): void {
+    this.histTaille.set(t);
+    this.histPage.set(0);
   }
 }

@@ -5,15 +5,17 @@ import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { Icon } from '../../shared/icon/icon';
 import { StatutBadge } from '../../shared/statut-badge/statut-badge';
+import { Pagination } from '../../shared/pagination/pagination';
 import { LIBELLE_STATUT_COMMANDE } from '../../shared/libelles';
-import { STATUT_COMMANDE, StatutCommande } from '../../core/config/constants';
+import { STATUT_COMMANDE, StatutCommande, ROLES } from '../../core/config/constants';
 import { CommandeService } from '../../core/services/commande.service';
-import { TenantService } from '../../core/services/tenant.service';
 import { CommandeDTO } from '../../core/models/commande.model';
+import { TenantService } from '../../core/services/tenant.service';
+import { extraireMessageErreur } from '../../core/interceptors/error.interceptor';
 
 @Component({
   selector: 'app-commandes',
-  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, StatutBadge],
+  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, StatutBadge, Pagination],
   templateUrl: './commandes.html',
   styleUrl: '../_feature.scss',
 })
@@ -24,11 +26,14 @@ export class Commandes {
   private readonly route = inject(ActivatedRoute);
 
   readonly peutEcrire = this.tenant.peutEcrire;
+  readonly peutGererStatuts = this.tenant.peutGererStatuts;
+  readonly estAgentProduction = this.tenant.estAgentProduction;
 
   readonly commandes = signal<CommandeDTO[]>([]);
   readonly enChargement = signal(true);
   readonly totalPages = signal(0);
   readonly page = signal(0);
+  readonly taille = signal(20);
 
   readonly filtreStatut = signal('');
   readonly filtreTicket = signal('');
@@ -58,7 +63,7 @@ export class Commandes {
         clientId: this.clientFiltre()?.id,
         statut: this.filtreStatut() || undefined,
         page: this.page(),
-        size: 20,
+        size: this.taille(),
         sort: `${this.tri().colonne},${this.tri().sens}`,
       })
       .subscribe({
@@ -96,12 +101,15 @@ export class Commandes {
     this.charger();
   }
 
-  allerPage(delta: number): void {
-    const p = this.page() + delta;
-    if (p >= 0 && p < this.totalPages()) {
-      this.page.set(p);
-      this.charger();
-    }
+  changerPage(p: number): void {
+    this.page.set(p);
+    this.charger();
+  }
+
+  changerTaille(t: number): void {
+    this.taille.set(t);
+    this.page.set(0);
+    this.charger();
   }
 
   nouveau(): void {
@@ -114,6 +122,14 @@ export class Commandes {
 
   libelleStatut(s: string): string {
     return LIBELLE_STATUT_COMMANDE[s as StatutCommande] ?? s;
+  }
+
+  changerStatut(c: CommandeDTO, statut: StatutCommande): void {
+    if (!statut || statut === c.statut) return;
+    this.service.changerStatut(c.idcommande!, statut).subscribe({
+      next: () => this.charger(),
+      error: () => this.charger(),
+    });
   }
 
   filtrerTicket(): void {

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Icon } from '../../shared/icon/icon';
+import { Pagination } from '../../shared/pagination/pagination';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { FideliteService } from '../../core/services/fidelite.service';
 import { ClientService } from '../../core/services/client.service';
@@ -13,7 +14,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
 
 @Component({
   selector: 'app-fidelite',
-  imports: [FormsModule, Icon, DateFrPipe],
+  imports: [FormsModule, Icon, DateFrPipe, Pagination],
   templateUrl: './fidelite.html',
   styleUrl: '../_feature.scss',
 })
@@ -28,6 +29,10 @@ export class Fidelite {
   readonly recherchePhone = signal('');
   readonly resultats = signal<Client[]>([]);
   readonly client = signal<Client | null>(null);
+
+  readonly resultPage = signal(0);
+  readonly resultTotalPages = signal(0);
+  readonly rechercheNom = signal('');
 
   readonly enChargement = signal(true);
   readonly solde = signal<SoldeFideliteDTO | null>(null);
@@ -48,17 +53,43 @@ export class Fidelite {
     const q = this.recherchePhone().trim();
     if (!q) return;
     this.resultats.set([]);
+    this.resultPage.set(0);
     if (q.replace(/\D/g, '').length >= 8) {
+      this.rechercheNom.set('');
       this.clients.rechercherParTelephone(q).subscribe({
-        next: (c) => this.resultats.set([c]),
-        error: () => this.resultats.set([]),
+        next: (c) => {
+          this.resultats.set([c]);
+          this.resultTotalPages.set(1);
+        },
+        error: () => {
+          this.resultats.set([]);
+          this.resultTotalPages.set(1);
+        },
       });
     } else {
-      this.clients.rechercherParNom(q).subscribe({
-        next: (p) => this.resultats.set(p.content ?? []),
-        error: () => this.resultats.set([]),
-      });
+      this.rechercheNom.set(q);
+      this.rechercherNomPage(0);
     }
+  }
+
+  changerResultPage(p: number): void {
+    const q = this.rechercheNom();
+    if (!q) return;
+    this.resultPage.set(p);
+    this.rechercherNomPage(p);
+  }
+
+  private rechercherNomPage(page: number): void {
+    this.clients.rechercherParNom(this.rechercheNom(), page, 10).subscribe({
+      next: (p) => {
+        this.resultats.set(p.content ?? []);
+        this.resultTotalPages.set(p.totalPages ?? 1);
+      },
+      error: () => {
+        this.resultats.set([]);
+        this.resultTotalPages.set(1);
+      },
+    });
   }
 
   choisirClient(c: Client): void {

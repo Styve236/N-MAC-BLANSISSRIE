@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { TenantService } from '../../core/services/tenant.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { NotificationDTO } from '../../core/models/notification.model';
 import { ROLES } from '../../core/config/constants';
 
@@ -30,9 +31,11 @@ export class MainLayout {
   private readonly router = inject(Router);
   private readonly notifsSvc = inject(NotificationService);
   private readonly toasts = inject(ToastService);
+  private readonly themes = inject(ThemeService);
 
   readonly nom = this.tenant.nom;
   readonly role = this.tenant.role;
+  readonly themeSombre = computed(() => this.themes.theme() === 'sombre');
 
   readonly notifs = signal<NotificationDTO[]>([]);
   readonly nonLues = signal(0);
@@ -133,6 +136,10 @@ export class MainLayout {
     this.auth.logout().subscribe({
       complete: () => this.router.navigate(['/login']),
     });
+  }
+
+  basculerTheme(): void {
+    this.themes.basculer();
   }
 
   private bip(): void {

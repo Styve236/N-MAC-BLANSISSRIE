@@ -117,7 +117,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (h of historique(); track h.idcloture) {
+        @for (h of historiqueVisible(); track h.idcloture) {
           <tr>
             <td>{{ h.date | dateFr:'date' }}</td>
             <td class="num">{{ h.totalLogiciel | cfa }}</td>
@@ -129,5 +129,14 @@
         }
       </tbody>
     </table>
+
+    <app-pagination
+      [page]="histPage()"
+      [totalPages]="histTotalPages()"
+      [pageSize]="histTaille()"
+      [tailles]="[10, 20, 50]"
+      (pageChange)="changerHistPage($event)"
+      (pageSizeChange)="changerHistTaille($event)"
+    />
   }
 </div>

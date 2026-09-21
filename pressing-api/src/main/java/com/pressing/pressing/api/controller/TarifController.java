@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/tarifs")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Tarifs", description = "Grille tarifaire des prestations")
 public class TarifController {
 
     private final TarifService tarifService;

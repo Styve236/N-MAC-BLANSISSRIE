@@ -66,6 +66,13 @@
 			<artifactId>spring-boot-starter-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Documentation OpenAPI / Swagger UI. springdoc v3 est requis pour Spring Boot 4 (Spring Framework 7).
+		     La v2.x provoquait : NoSuchMethodError ControllerAdviceBean.<init>(Object). -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.1</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation-test</artifactId>

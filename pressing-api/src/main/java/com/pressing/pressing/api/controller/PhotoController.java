@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Photos", description = "Photos des commandes")
 public class PhotoController {
 
     private final PhotoService photoService;

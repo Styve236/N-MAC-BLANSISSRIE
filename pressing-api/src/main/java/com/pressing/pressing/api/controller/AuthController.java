@@ -26,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Authentification", description = "Connexion, rafraichissement et deconnexion (JWT)")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

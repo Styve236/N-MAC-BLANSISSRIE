@@ -1,16 +1,23 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin, Observable } from 'rxjs';
 import { Icon } from '../../shared/icon/icon';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { moyenPaiementOptions, typeNettoyageOptions } from '../../shared/libelles';
 import { ClientService } from '../../core/services/client.service';
 import { TarifService } from '../../core/services/tarif.service';
 import { CommandeService } from '../../core/services/commande.service';
+import { PhotoService } from '../../core/services/photo.service';
 import { TypeNettoyage as TypeNettoyageValue } from '../../core/config/constants';
 import { Client } from '../../core/models/client.model';
-import { Tarif, CommandeRequestDTO, LigneCommandeDTO } from '../../core/models/commande.model';
+import { Commande, CommandeRequestDTO, LigneCommandeDTO, Photo, Tarif } from '../../core/models/commande.model';
 import { extraireMessageErreur } from '../../core/interceptors/error.interceptor';
+
+interface PhotoSelection {
+  fichier: File;
+  apercu: string;
+}
 
 interface LigneFormulaire {
   tarifId: number | null;
@@ -20,6 +27,7 @@ interface LigneFormulaire {
   typeNettoyage: string;
   description: string;
   tarif?: Tarif;
+  photos: PhotoSelection[];
 }
 
 @Component({
@@ -32,6 +40,7 @@ export class NouvelleCommande {
   private readonly clients = inject(ClientService);
   private readonly tarifsSvc = inject(TarifService);
   private readonly commandes = inject(CommandeService);
+  private readonly photos = inject(PhotoService);
   private readonly router = inject(Router);
 
   readonly typesNettoyage = typeNettoyageOptions();
@@ -89,11 +98,44 @@ export class NouvelleCommande {
   }
 
   ligneVide(): LigneFormulaire {
-    return { tarifId: null, auPoids: true, poids: null, quantite: null, typeNettoyage: 'LAVAGE_SIMPLE', description: '' };
+    return { tarifId: null, auPoids: true, poids: null, quantite: null, typeNettoyage: 'LAVAGE_SIMPLE', description: '', photos: [] };
   }
 
   ajouterLigne(): void {
     this.lignes.update((l) => [...l, this.ligneVide()]);
+  }
+
+  onPhotosSelectionnes(i: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const fichiers = input.files ? Array.from(input.files) : [];
+    const valides: PhotoSelection[] = [];
+    for (const f of fichiers) {
+      if (!f.type.startsWith('image/')) {
+        this.erreur.set('Seules les images sont acceptées.');
+        continue;
+      }
+      if (f.size > 10 * 1024 * 1024) {
+        this.erreur.set('Image trop volumineuse : maximum 10 Mo par image.');
+        continue;
+      }
+      valides.push({ fichier: f, apercu: URL.createObjectURL(f) });
+    }
+    if (valides.length > 0) {
+      this.lignes.update((l) => {
+        const copie = [...l];
+        copie[i] = { ...copie[i], photos: [...copie[i].photos, ...valides] };
+        return copie;
+      });
+    }
+    input.value = '';
+  }
+
+  retirerPhoto(i: number, idx: number): void {
+    this.lignes.update((l) => {
+      const copie = [...l];
+      copie[i] = { ...copie[i], photos: copie[i].photos.filter((_, p) => p !== idx) };
+      return copie;
+    });
   }
 
   acompteValide(): boolean {
@@ -196,11 +238,30 @@ export class NouvelleCommande {
     this.enregistrement.set(true);
     this.erreur.set('');
     this.commandes.creer(dto).subscribe({
-      next: (cmd) => this.router.navigate(['/commandes', cmd.idcommande]),
+      next: (cmd) => this.uploaderPhotos(cmd),
       error: (err) => {
         this.enregistrement.set(false);
         this.erreur.set(extraireMessageErreur(err));
       },
+    });
+  }
+
+  private uploaderPhotos(cmd: Commande): void {
+    const uploads: Observable<Photo>[] = [];
+    this.lignes().forEach((l, i) => {
+      const idligne = cmd.lignes?.[i]?.idligne;
+      if (!idligne) return;
+      for (const p of l.photos) {
+        uploads.push(this.photos.uploader(idligne, p.fichier, l.typeNettoyage));
+      }
+    });
+    if (uploads.length === 0) {
+      this.router.navigate(['/commandes', cmd.idcommande]);
+      return;
+    }
+    forkJoin(uploads).subscribe({
+      next: () => this.router.navigate(['/commandes', cmd.idcommande]),
+      error: () => this.router.navigate(['/commandes', cmd.idcommande]),
     });
   }
 }

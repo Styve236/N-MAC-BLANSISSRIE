@@ -127,12 +127,14 @@
       </tbody>
     </table>
 
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn btn-sm" (click)="allerPage(-1)" [disabled]="page() === 0">Précédent</button>
-        <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
-        <button class="btn btn-sm" (click)="allerPage(1)" [disabled]="page() >= totalPages() - 1">Suivant</button>
-      </div>
-    }
+    <app-pagination
+      [page]="page()"
+      [totalPages]="totalPages()"
+      [pageSize]="taille()"
+      [tailles]="[10, 20, 50]"
+      [desactive]="enChargement()"
+      (pageChange)="changerPage($event)"
+      (pageSizeChange)="changerTaille($event)"
+    />
   </div>
 }

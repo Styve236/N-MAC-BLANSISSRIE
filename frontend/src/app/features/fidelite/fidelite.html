@@ -31,6 +31,11 @@
           </button>
         }
       </div>
+      <app-pagination
+        [page]="resultPage()"
+        [totalPages]="resultTotalPages()"
+        (pageChange)="changerResultPage($event)"
+      />
     }
   </div>
 } @else {

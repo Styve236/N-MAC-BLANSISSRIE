@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/fidelite")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Fidelite", description = "Points de fidelite des clients")
 public class FideliteController {
 
     private final FideliteService fideliteService;

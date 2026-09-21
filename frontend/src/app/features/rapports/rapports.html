@@ -8,136 +8,159 @@
 }
 
 <!-- Synthèse -->
-@if (data(); as d) {
-  <div class="detail-section">
-    <h2>Synthèse du chiffre d'affaires</h2>
-    <div class="summary-bar">
-      <div class="summary-item">
-        <span>CA jour</span>
-        <strong>{{ d.chiffreAffairesJour | cfa }}</strong>
+@if (enChargement()) {
+  <p class="empty">Chargement des statistiques…</p>
+} @else if (data(); as d) {
+  <div class="stat-kpis">
+    @for (k of kpis(); track k.label) {
+      <div class="stat-kpi" [class]="k.type">
+        <span class="stat-kpi-icone"><app-icon [nom]="k.icon" [taille]="22" /></span>
+        <span class="stat-kpi-infos">
+          <span class="stat-kpi-label">{{ k.label }}</span>
+          <span class="stat-kpi-valeur">
+            @if (k.cfa) {
+              {{ k.valeur | cfa }}
+            } @else {
+              {{ k.valeur }}
+            }
+          </span>
+        </span>
       </div>
-      <div class="summary-item">
-        <span>CA mois</span>
-        <strong>{{ d.chiffreAffairesMois | cfa }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Total encaissé</span>
-        <strong>{{ d.totalEncaisse | cfa }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Total commandes</span>
-        <strong>{{ d.totalCommandes }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Commandes aujourd'hui</span>
-        <strong>{{ d.commandesAujourdhui }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Total clients</span>
-        <strong>{{ d.totalClients }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Impayées</span>
-        <strong style="color:#b91c1c">{{ d.commandesImpayees }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Montant impayé</span>
-        <strong style="color:#b91c1c">{{ (d.montantImpayeTotal ?? 0) | cfa }}</strong>
-      </div>
+    }
+  </div>
+
+  <div class="stat-grid-2">
+    <div class="stat-carte">
+      <h2>Commandes par statut</h2>
+      @if (totalStatuts() === 0) {
+        <p class="empty">Aucune commande.</p>
+      } @else {
+        <div class="stat-corps">
+          <div class="anneau-wrap">
+            <svg class="anneau" viewBox="0 0 100 100">
+              <circle class="anneau-piste" cx="50" cy="50" r="40"></circle>
+              @for (seg of anneauStatuts(); track seg.cle; let i = $index) {
+                <circle
+                  class="anneau-segment"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  [style.stroke]="seg.couleur"
+                  [style.stroke-dasharray]="dasharraySegment(seg)"
+                  [style.transition-delay.ms]="i * 90"
+                  [attr.stroke-dashoffset]="seg.dashoffset"
+                ></circle>
+              }
+            </svg>
+            <div class="anneau-centre">
+              <strong>{{ totalStatuts() }}</strong>
+              <span>commandes</span>
+            </div>
+          </div>
+          <div class="stat-legende">
+            @for (r of commandesParStatut(); track r.cle) {
+              <div class="stat-legende-item">
+                <span class="stat-legende-dot" [style.background]="r.couleur"></span>
+                <span class="stat-legende-nom">{{ libelleStatut(r.statut) }}</span>
+                <span class="stat-legende-val">{{ r.count }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="stat-carte">
+      <h2>Encaissements par moyen de paiement</h2>
+      @if (totalMoyens() === 0) {
+        <p class="empty">Aucun encaissement.</p>
+      } @else {
+        <div class="stat-corps">
+          <div class="anneau-wrap">
+            <svg class="anneau" viewBox="0 0 100 100">
+              <circle class="anneau-piste" cx="50" cy="50" r="40"></circle>
+              @for (seg of anneauMoyens(); track seg.cle; let i = $index) {
+                <circle
+                  class="anneau-segment"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  [style.stroke]="seg.couleur"
+                  [style.stroke-dasharray]="dasharraySegment(seg)"
+                  [style.transition-delay.ms]="i * 90"
+                  [attr.stroke-dashoffset]="seg.dashoffset"
+                ></circle>
+              }
+            </svg>
+            <div class="anneau-centre">
+              <strong>{{ totalMoyens() | cfa }}</strong>
+              <span>encaissé</span>
+            </div>
+          </div>
+          <div class="stat-legende">
+            @for (r of encaissementsParMoyen(); track r.cle) {
+              <div class="stat-legende-item">
+                <span class="stat-legende-dot" [style.background]="r.couleur"></span>
+                <span class="stat-legende-nom">{{ libelleMoyen(r.moyen) }}</span>
+                <span class="stat-legende-val">
+                  {{ r.montant | cfa }}
+                  <small>{{ (r.montant / totalMoyens()) | percent }}</small>
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   </div>
 
-  @if (commandesParStatut().length > 0) {
-    <div class="detail-section">
-      <h2>Commandes par statut</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Statut</th>
-            <th class="num">Nombre</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of commandesParStatut(); track row.statut) {
-            <tr>
-              <td>{{ libelleStatut(row.statut) }}</td>
-              <td class="num">{{ row.count }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  @if (encaissementsParMoyen().length > 0) {
-    <div class="detail-section">
-      <h2>Encaissements par moyen de paiement</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Moyen</th>
-            <th class="num">Montant</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of encaissementsParMoyen(); track row.moyen) {
-            <tr>
-              <td>{{ libelleMoyen(row.moyen) }}</td>
-              <td class="num">{{ row.montant | cfa }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  @if ((d.topClients ?? []).length > 0) {
-    <div class="detail-section">
+  <div class="stat-grid-2">
+    <div class="stat-carte">
       <h2>Top 5 clients</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th class="num">Commandes</th>
-            <th class="num">Total dépensé</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of d.topClients; track c.nom) {
-            <tr>
-              <td>{{ c.nom }} ({{ c.telephone }})</td>
-              <td class="num">{{ c.nbCommandes }}</td>
-              <td class="num">{{ c.totalDepense | cfa }}</td>
-            </tr>
+      @if (topClients().length === 0) {
+        <p class="empty">Aucune donnée client.</p>
+      } @else {
+        <div class="top-liste">
+          @for (c of topClients(); track c.cle) {
+            <div class="top-row">
+              <div class="top-entete">
+                <span class="top-rang" [class]="c.rangClasse">{{ c.rang }}</span>
+                <span class="top-nom">{{ c.nom }}</span>
+                <span class="top-annexe">{{ c.annexe }}</span>
+                <span class="top-total">{{ c.total | cfa }}</span>
+              </div>
+              <div class="barre-piste">
+                <div class="barre-rempli" [style.width.%]="c.pct" [style.background]="c.couleur"></div>
+              </div>
+            </div>
           }
-        </tbody>
-      </table>
+        </div>
+      }
     </div>
-  }
 
-  @if ((d.topPrestations ?? []).length > 0) {
-    <div class="detail-section">
+    <div class="stat-carte">
       <h2>Top 5 prestations</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Prestation</th>
-            <th class="num">Réalisations</th>
-            <th class="num">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of d.topPrestations; track p.nomTarif) {
-            <tr>
-              <td>{{ p.nomTarif }} ({{ p.typevetement }})</td>
-              <td class="num">{{ p.nbPrestations }}</td>
-              <td class="num">{{ p.total | cfa }}</td>
-            </tr>
+      @if (topPrestations().length === 0) {
+        <p class="empty">Aucune donnée de prestations.</p>
+      } @else {
+        <div class="top-liste">
+          @for (p of topPrestations(); track p.cle) {
+            <div class="top-row">
+              <div class="top-entete">
+                <span class="presto-dot" [style.background]="p.couleur"></span>
+                <span class="top-nom">{{ p.nom }}</span>
+                <span class="top-annexe">{{ p.annexe }}</span>
+                <span class="top-total">{{ p.total | cfa }}</span>
+              </div>
+              <div class="barre-piste">
+                <div class="barre-rempli" [style.width.%]="p.pct" [style.background]="p.couleur"></div>
+              </div>
+            </div>
           }
-        </tbody>
-      </table>
+        </div>
+      }
     </div>
-  }
+  </div>
 }
 
 <!-- Exports -->
@@ -153,7 +176,7 @@
       <input type="date" [(ngModel)]="fin" />
     </div>
   </div>
-  <div class="export-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
     <button class="btn" (click)="telecharger('commandes', 'pdf')" [disabled]="enCoursExport()">
       <app-icon nom="download" [taille]="16" /> Commandes PDF
     </button>

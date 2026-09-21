@@ -19,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RequestMapping("/api/caisse")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Caisse", description = "Clotures et rapport de caisse")
 public class ClotureCaisseController {
 
     private final ClotureService clotureService;

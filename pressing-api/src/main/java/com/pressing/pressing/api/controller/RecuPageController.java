@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/recu")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Recus (page)", description = "Pages HTML imprimables des recus")
 public class RecuPageController {
 
     private static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");

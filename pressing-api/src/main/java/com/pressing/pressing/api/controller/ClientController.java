@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/clients")
 @RequiredArgsConstructor
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Clients", description = "Gestion des clients et recherche")
 public class ClientController {
 
     private final ClientService clientService;

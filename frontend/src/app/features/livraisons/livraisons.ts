@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { Icon } from '../../shared/icon/icon';
 import { StatutBadge } from '../../shared/statut-badge/statut-badge';
+import { Pagination } from '../../shared/pagination/pagination';
 import { LIBELLE_STATUT_LIVRAISON } from '../../shared/libelles';
 import { StatutLivraison, STATUT_LIVRAISON } from '../../core/config/constants';
 import { LivraisonService } from '../../core/services/livraison.service';
@@ -15,7 +16,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
 
 @Component({
   selector: 'app-livraisons',
-  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, StatutBadge],
+  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, StatutBadge, Pagination],
   templateUrl: './livraisons.html',
   styleUrl: '../_feature.scss',
 })
@@ -33,6 +34,16 @@ export class Livraisons {
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
+
+  readonly livraisonPage = signal(0);
+  readonly livraisonTaille = signal(20);
+  readonly livraisonTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.livraisons().length / this.livraisonTaille())),
+  );
+  readonly livraisonsVisible = computed(() => {
+    const debut = this.livraisonPage() * this.livraisonTaille();
+    return this.livraisons().slice(debut, debut + this.livraisonTaille());
+  });
 
   readonly statuts = Object.values(STATUT_LIVRAISON) as StatutLivraison[];
 
@@ -52,6 +63,7 @@ export class Livraisons {
   charger(): void {
     this.enChargement.set(true);
     this.erreur.set('');
+    this.livraisonPage.set(0);
     const appel = this.estLivreur() ? this.service.mesLivraisons() : this.service.lister();
     appel.subscribe({
       next: (l) => {
@@ -140,6 +152,15 @@ export class Livraisons {
 
   libelleStatut(s: string): string {
     return LIBELLE_STATUT_LIVRAISON[s as StatutLivraison] ?? s;
+  }
+
+  changerLivraisonPage(p: number): void {
+    this.livraisonPage.set(p);
+  }
+
+  changerLivraisonTaille(t: number): void {
+    this.livraisonTaille.set(t);
+    this.livraisonPage.set(0);
   }
 
   masquer(l: LivraisonDTO): void {

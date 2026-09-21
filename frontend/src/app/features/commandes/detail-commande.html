@@ -55,6 +55,7 @@
           <th class="num">Qté</th>
           <th class="num">Montant</th>
           <th>Description</th>
+          <th>Photos</th>
         </tr>
       </thead>
       <tbody>
@@ -66,6 +67,30 @@
             <td class="num">{{ l.quantite ?? '—' }}</td>
             <td class="num">{{ l.montant | cfa }}</td>
             <td>{{ l.description || '—' }}</td>
+            <td>
+              @if (photosDe(l).length === 0) {
+                <span style="color:var(--ink-soft);font-size:12px">—</span>
+              } @else {
+                <div class="ligne-photos" style="margin-top:0;justify-content:flex-start">
+                  @for (p of photosDe(l); track p.idphoto) {
+                    <div class="photo-preview" style="width:56px;height:56px">
+                      <a
+                        [href]="fichierUrl(p.idphoto ?? 0)"
+                        target="_blank"
+                        style="display:block;width:100%;height:100%"
+                      >
+                        <img [src]="fichierUrl(p.idphoto ?? 0)" alt="Photo article" />
+                      </a>
+                      @if (peutPayer()) {
+                        <button class="photo-retirer" type="button" (click)="supprimerPhoto(p.idphoto ?? 0)">
+                          <app-icon nom="x" [taille]="12" />
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </td>
           </tr>
         }
       </tbody>
