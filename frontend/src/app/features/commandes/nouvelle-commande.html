@@ -108,7 +108,7 @@
           <label class="btn btn-sm photo-ajouter">
             <app-icon nom="camera" [taille]="14" />
             Photo (max 10 Mo)
-            <input type="file" accept="image/*" multiple (change)="onPhotosSelectionnes(i, $event)" />
+            <input type="file" accept="image/*" capture="environment" multiple (change)="onPhotosSelectionnes(i, $event)" />
           </label>
         </div>
         <div class="ligne-actions">

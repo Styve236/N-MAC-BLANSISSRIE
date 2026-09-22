@@ -16,4 +16,7 @@ export class TenantService {
   readonly peutGererStatuts = computed(() =>
     this.estAdmin() || this.estReceptionniste() || this.estAgentProduction() || this.estLivreur()
   );
+  readonly peutAjouterPhoto = computed(() =>
+    this.estAdmin() || this.estReceptionniste() || this.estAgentProduction()
+  );
 }

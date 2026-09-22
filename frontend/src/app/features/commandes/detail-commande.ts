@@ -43,6 +43,7 @@ export class DetailCommande {
 
   readonly peutPayer = this.tenant.peutEcrire;
   readonly peutChangerStatut = this.tenant.peutGererStatuts;
+  readonly peutAjouterPhoto = this.tenant.peutAjouterPhoto;
 
   readonly commande = signal<Commande | null>(null);
   readonly statutPaiement = signal<StatutPaiementDTO | null>(null);
@@ -56,6 +57,7 @@ export class DetailCommande {
   readonly paiementForm = signal<PaiementDTO>({ montant: 0, moyenPaiement: 'ESPECES' });
   readonly enCoursStatut = signal(false);
   readonly enCoursPaiement = signal(false);
+  readonly enCoursPhoto = signal(false);
 
   readonly afficherFormLivraison = signal(false);
   readonly livreurs = signal<UserDTO[]>([]);
@@ -126,6 +128,37 @@ export class DetailCommande {
       },
       error: (err) => this.erreur.set(extraireMessageErreur(err)),
     });
+  }
+
+  onPhotoSelectionnee(l: LigneCommandeLegere, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const fichiers = input.files ? Array.from(input.files) : [];
+    input.value = '';
+    const idligne = l.idligne;
+    if (!idligne || fichiers.length === 0) return;
+    this.erreur.set('');
+    for (const f of fichiers) {
+      if (!f.type.startsWith('image/')) {
+        this.erreur.set('Seules les images sont acceptées.');
+        continue;
+      }
+      if (f.size > 10 * 1024 * 1024) {
+        this.erreur.set('Image trop volumineuse : maximum 10 Mo par image.');
+        continue;
+      }
+      this.enCoursPhoto.set(true);
+      this.photos.uploader(idligne, f, l.typeNettoyage).subscribe({
+        next: (p) => {
+          this.enCoursPhoto.set(false);
+          this.photosParLigne.update((m) => ({ ...m, [idligne]: [...(m[idligne] ?? []), p] }));
+          this.message.set('Photo ajoutée.');
+        },
+        error: (err) => {
+          this.enCoursPhoto.set(false);
+          this.erreur.set(extraireMessageErreur(err));
+        },
+      });
+    }
   }
 
   private chargerLivreurs(): void {
