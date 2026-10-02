@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface CommandeRepository extends JpaRepository<Commande, Long> {
+public interface CommandeRepository extends JpaRepository<Commande, Long>, JpaSpecificationExecutor<Commande> {
     List<Commande> findByClientIdclient(Long clientId);
 
     Page<Commande> findByStatut(StatutCommande statut, Pageable pageable);
@@ -32,6 +33,16 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
 
     @Query("SELECT c FROM Commande c WHERE COALESCE(c.montantTotal, 0) - COALESCE(c.remise, 0) > COALESCE(c.montantPaye, 0)")
     List<Commande> findByMontantPayeLessThanMontantTotal();
+
+    // Agregats en base : le rapport ne doit pas charger toute la table pour compter
+    @Query("SELECT c.statut, COUNT(c) FROM Commande c WHERE c.statut IS NOT NULL GROUP BY c.statut")
+    List<Object[]> countParStatut();
+
+    // Meme predicat que findByMontantPayeLessThanMontantTotal, agrege en SQL
+    @Query("SELECT COUNT(c), COALESCE(SUM(COALESCE(c.montantTotal, 0) - COALESCE(c.remise, 0) "
+            + "- COALESCE(c.montantPaye, 0)), 0) FROM Commande c "
+            + "WHERE COALESCE(c.montantTotal, 0) - COALESCE(c.remise, 0) > COALESCE(c.montantPaye, 0)")
+    List<Object[]> countEtSommeImpayees();
 
     @Query("SELECT c FROM Commande c WHERE c.statut = :statut AND (c.adresseLivraison IS NULL OR c.livreur IS NULL)")
     List<Commande> findPretesSansLivraison(@Param("statut") StatutCommande statut);

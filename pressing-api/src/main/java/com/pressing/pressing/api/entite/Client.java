@@ -11,7 +11,10 @@ import java.util.List;
 
 
 @Entity
-@Table(name = "client")
+@Table(name = "client", indexes = {
+        @Index(name = "idx_client_nom", columnList = "nom"),
+        @Index(name = "idx_client_quartier", columnList = "quartier")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,7 +34,9 @@ public class Client {
     private String ville;
     private String quartier;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    // Pas de CascadeType.ALL : supprimer un client ne doit jamais supprimer
+    // son historique de commandes (la suppression est bloquée si des commandes existent).
+    @OneToMany(mappedBy = "client")
     @JsonIgnore
     private List<Commande> commandes =  new ArrayList<>();
 

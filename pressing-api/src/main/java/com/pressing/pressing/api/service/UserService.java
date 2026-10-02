@@ -21,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public UserDTO creer(UserRequestDTO dto) {
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
@@ -81,6 +82,11 @@ public class UserService {
         Users utilisateur = userRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Employé introuvable avec l'id : " + id));
         utilisateur.setActif(actif);
+        // Desactiver ferme immediatement toutes les sessions du compte : le filtre JWT
+        // rejette les acces en cours, la revocation empeche tout renouvellement ulterieur.
+        if (!actif) {
+            refreshTokenService.revoquerToutes(utilisateur.getIdusers());
+        }
         return toDTO(userRepository.save(utilisateur));
     }
 
@@ -91,6 +97,8 @@ public class UserService {
         Users utilisateur = userRepository.findById(id)
                 .orElseThrow(() -> new RessourceNotFoundException("Employé introuvable avec l'id : " + id));
         utilisateur.setPassword(passwordEncoder.encode(nouveauMotDePasse));
+        // Un mot de passe reinitialise doit invalider les sessions actives.
+        refreshTokenService.revoquerToutes(utilisateur.getIdusers());
         return toDTO(userRepository.save(utilisateur));
     }
 

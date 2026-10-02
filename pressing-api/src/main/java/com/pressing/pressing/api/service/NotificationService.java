@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -26,7 +27,9 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     // L'agent de production reçoit une notification interne (message personnalisable).
-    @Transactional
+    // Transaction propre : appelée depuis la création d'une commande, son échec ne
+    // doit pas marquer la transaction de la commande en rollback-only.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifierNouvelleCommande(Commande commande, String messagePersonnalise) {
         List<Users> agents = userRepository.findByRoleAndActifTrue(Role.AGENT_PRODUCTION);
         String message = (messagePersonnalise == null || messagePersonnalise.isBlank())

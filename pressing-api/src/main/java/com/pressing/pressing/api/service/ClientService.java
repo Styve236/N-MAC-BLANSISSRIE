@@ -1,4 +1,5 @@
 package com.pressing.pressing.api.service;
+import com.pressing.pressing.api.common.exception.ConflitDonneeException;
 import com.pressing.pressing.api.common.exception.DonneeDejaExistanteException;
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import com.pressing.pressing.api.dto.response.ClientDTO;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 
@@ -56,6 +58,20 @@ public class ClientService {
         Client client = clientRepository.findByTelephone(telephone)
                 .orElseThrow(() -> new RessourceNotFoundException("Aucun client trouvé avec le téléphone : " + telephone));
         return toDTO(client);
+    }
+
+    // Suppression definitive reservee aux clients sans historique : un client ayant
+    // des commandes ne doit pas disparaitre (contrainte FK + litiges de restitution).
+    @Transactional
+    public void supprimer(Long id) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new RessourceNotFoundException("Client introuvable avec l'id : " + id));
+        if (clientRepository.existsByIdclientAndCommandesIsNotEmpty(id)) {
+            throw new ConflitDonneeException(
+                    "Impossible de supprimer ce client : il possède déjà des commandes. "
+                            + "Supprimez ou archivez ses commandes d'abord.");
+        }
+        clientRepository.delete(client);
     }
 
     private ClientDTO toDTO(Client client) {

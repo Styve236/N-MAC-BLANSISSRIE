@@ -3,17 +3,26 @@ import com.pressing.pressing.api.entite.Role;
 import com.pressing.pressing.api.entite.Users;
 import com.pressing.pressing.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 
 
+// Cree les comptes de demonstration. DESACTIVE par defaut : sans cela,
+// admin/admin123 serait recree a chaque demarrage. En developpement local,
+// l'activer explicitement avec APP_INITIALIZER_ACTIF=true.
 @Component
 @Order(1)
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.initializer.actif", havingValue = "true")
 public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -37,7 +46,8 @@ public class DataInitializer implements CommandLineRunner {
                     .actif(true)
                     .build();
             userRepository.save(utilisateur);
-            System.out.println(">>> Compte " + role + " cree par defaut : " + email + " / " + motDePasse);
+            log.warn("Compte de démonstration créé : {} ({}) — à supprimer ou à changer en production",
+                    email, role);
         }
     }
 }

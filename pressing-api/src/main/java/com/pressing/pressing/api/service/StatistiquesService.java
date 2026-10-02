@@ -44,44 +44,32 @@ public class StatistiquesService {
         LocalDateTime finJour = aujourdhui.atTime(23, 59, 59);
 
         List<Commande> commandes = commandeRepository.findAll();
-        List<Paiement> paiements = paiementRepository.findAll();
 
         StatistiquesDTO stats = new StatistiquesDTO();
         stats.setChiffreAffairesJour(nonNull(paiementRepository.sumMontantByDate(aujourdhui)));
         stats.setChiffreAffairesMois(nonNull(paiementRepository.sumMontantBetween(debutMois, finJour)));
-        stats.setTotalEncaisse(paiements.stream()
-                .map(Paiement::getMontant)
-                .filter(m -> m != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        stats.setTotalEncaisse(nonNull(paiementRepository.sumMontant()));
         stats.setTotalCommandes(commandes.size());
-        stats.setCommandesAujourdhui(commandes.stream()
-                .filter(c -> c.getDateCreation() != null
-                        && !c.getDateCreation().isBefore(debutJour)
-                        && !c.getDateCreation().isAfter(finJour))
-                .count());
+        stats.setCommandesAujourdhui(commandeRepository.countByDateCreationBetween(debutJour, finJour));
         stats.setTotalClients(clientRepository.count());
 
-        List<Commande> impayees = commandes.stream().filter(Commande::aUnsolde).toList();
-        stats.setCommandesImpayees(impayees.size());
-        stats.setMontantImpayeTotal(impayees.stream()
-                .map(Commande::getResteAPayer)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        List<Object[]> impayees = commandeRepository.countEtSommeImpayees();
+        stats.setCommandesImpayees(impayees.isEmpty() ? 0L : ((Number) impayees.get(0)[0]).longValue());
+        stats.setMontantImpayeTotal(impayees.isEmpty() ? BigDecimal.ZERO : (BigDecimal) impayees.get(0)[1]);
 
         Map<StatutCommande, Long> parStatut = new EnumMap<>(StatutCommande.class);
         for (StatutCommande statut : StatutCommande.values()) {
             parStatut.put(statut, 0L);
         }
-        parStatut.putAll(commandes.stream()
-                .filter(c -> c.getStatut() != null)
-                .collect(Collectors.groupingBy(Commande::getStatut, Collectors.counting())));
+        for (Object[] ligne : commandeRepository.countParStatut()) {
+            parStatut.put((StatutCommande) ligne[0], ((Number) ligne[1]).longValue());
+        }
         stats.setCommandesParStatut(parStatut);
 
         Map<MoyenPaiement, BigDecimal> parMoyen = new EnumMap<>(MoyenPaiement.class);
-        paiements.stream()
-                .filter(p -> p.getMoyenPaiement() != null && p.getMontant() != null)
-                .collect(Collectors.groupingBy(Paiement::getMoyenPaiement,
-                        Collectors.mapping(Paiement::getMontant, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))))
-                .forEach(parMoyen::put);
+        for (Object[] ligne : paiementRepository.sumMontantParMoyen()) {
+            parMoyen.put((MoyenPaiement) ligne[0], (BigDecimal) ligne[1]);
+        }
         stats.setEncaissementParMoyen(orderMoyens(parMoyen));
 
         stats.setTopClients(calculerTopClients(commandes));

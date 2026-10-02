@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 
 
@@ -16,11 +18,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationSmsService {
 
+    // Chaque envoi tourne dans sa propre transaction. Sans cela, un SMS en echec
+    // marquait la transaction métier en rollback-only : le catch de l'appelant
+    // empechait l'exception de remonter, mais pas le commit d'echouer, et l'operation
+    // metier (commande, paiement) disparaitait derriere une erreur 500.
+
     private static final DateTimeFormatter FORMAT_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm");
 
     private final SmsService smsService;
     private final SmsProperties smsProperties;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerConfirmationCommande(Commande commande) {
         Client client = commande.getClient();
         StringBuilder message = new StringBuilder();
@@ -38,6 +46,7 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.COMMANDE_ENREGISTREE, client.getTelephone(), message.toString());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerPaiementRecu(Commande commande, BigDecimal montant) {
         Client client = commande.getClient();
         BigDecimal reste = commande.getResteAPayer();
@@ -57,6 +66,7 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.PAIEMENT_RECU, client.getTelephone(), message.toString());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerLingePret(Commande commande) {
         Client client = commande.getClient();
         String message = "Bonjour " + client.getNom()
@@ -67,6 +77,7 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.LINGE_PRET, client.getTelephone(), message);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerRappelImpaye(Commande commande) {
         Client client = commande.getClient();
         BigDecimal reste = commande.getResteAPayer();
@@ -80,6 +91,7 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.RAPPEL_IMPAYE, client.getTelephone(), message);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerRecuCommande(Commande commande) {
         Client client = commande.getClient();
         String message = "Bonjour " + client.getNom()
@@ -90,6 +102,7 @@ public class NotificationSmsService {
         smsService.envoyer(TypeNotificationSms.RECU_COMMANDE, client.getTelephone(), message);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void envoyerLivreCommande(Commande commande) {
         Client client = commande.getClient();
         StringBuilder message = new StringBuilder();

@@ -18,6 +18,10 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Empreinte SHA-256 du refresh token, jamais le jeton lui-meme.
+     * La recherche se fait par empreinte : une base copiee ne donne pas de session exploitable.
+     */
     @Column(nullable = false, unique = true, length = 512)
     private String token;
 

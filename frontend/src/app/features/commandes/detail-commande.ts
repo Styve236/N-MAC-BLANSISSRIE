@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
@@ -30,7 +30,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
   templateUrl: './detail-commande.html',
   styleUrl: '../_feature.scss',
 })
-export class DetailCommande {
+export class DetailCommande implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cmd = inject(CommandeService);
@@ -48,6 +48,7 @@ export class DetailCommande {
   readonly commande = signal<Commande | null>(null);
   readonly statutPaiement = signal<StatutPaiementDTO | null>(null);
   readonly photosParLigne = signal<Record<number, Photo[]>>({});
+  readonly urlsPhotos = signal<Record<number, string>>({});
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
@@ -98,10 +99,28 @@ export class DetailCommande {
     if (ids.length === 0) return;
     for (const id of ids) {
       this.photos.lister(id).subscribe({
-        next: (liste) =>
-          this.photosParLigne.update((m) => ({ ...m, [id]: liste ?? [] })),
+        next: (liste) => {
+          this.photosParLigne.update((m) => ({ ...m, [id]: liste ?? [] }));
+          this.prechargerImages(liste ?? []);
+        },
         error: () =>
           this.photosParLigne.update((m) => ({ ...m, [id]: [] })),
+      });
+    }
+  }
+
+  /**
+   * Les photos etant privees, chaque image est telechargee en blob avec le jeton
+   * puis affichee depuis une URL locale. Les URL sont revoquees a la destruction
+   * du composant pour ne pas faire fuiter la memoire.
+   */
+  private prechargerImages(liste: Photo[]): void {
+    for (const p of liste) {
+      const id = p.idphoto;
+      if (id == null || this.urlsPhotos()[id]) continue;
+      this.photos.chargerFichier(id).subscribe({
+        next: (url) => this.urlsPhotos.update((m) => ({ ...m, [id]: url })),
+        error: () => undefined,
       });
     }
   }
@@ -110,8 +129,15 @@ export class DetailCommande {
     return l?.idligne != null ? (this.photosParLigne()[l.idligne] ?? []) : [];
   }
 
-  fichierUrl(idphoto: number): string {
-    return this.photos.fichierUrl(idphoto);
+  fichierUrl(idphoto: number): string | null {
+    return this.urlsPhotos()[idphoto] ?? null;
+  }
+
+  ngOnDestroy(): void {
+    for (const url of Object.values(this.urlsPhotos())) {
+      URL.revokeObjectURL(url);
+    }
+    this.urlsPhotos.set({});
   }
 
   supprimerPhoto(idphoto: number): void {
@@ -151,6 +177,7 @@ export class DetailCommande {
         next: (p) => {
           this.enCoursPhoto.set(false);
           this.photosParLigne.update((m) => ({ ...m, [idligne]: [...(m[idligne] ?? []), p] }));
+          this.prechargerImages([p]);
           this.message.set('Photo ajoutée.');
         },
         error: (err) => {

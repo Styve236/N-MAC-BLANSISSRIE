@@ -9,7 +9,9 @@ import lombok.Data;
 
 @Data
 public class CommandeDTO {
-    private Long id;
+    // "idcommande" et non "id" : le frontend (CommandeDTO + fidelite.html track c.idcommande)
+    // attend ce nom. Avec "id" la liste des commandes du client etait vide/illisible.
+    private Long idcommande;
     private String numeroTicket;
     private LocalDateTime dateCreation;
     private LocalDateTime dateRecuperationPrevue;

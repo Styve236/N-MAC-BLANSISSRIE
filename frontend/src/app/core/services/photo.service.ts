@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_URL } from '../config/constants';
 import { Photo } from '../models/commande.model';
 
@@ -23,7 +23,15 @@ export class PhotoService {
     return this.http.delete<void>(`${API_URL}/api/photos/${idphoto}`);
   }
 
-  fichierUrl(idphoto: number): string {
-    return `${API_URL}/api/photos/${idphoto}/fichier`;
+  /**
+   * Les fichiers photo exigent un jeton : un <img src> n'envoie pas l'en-tete
+   * Authorization et afficherait une image cassee. On telecharge donc la photo en
+   * blob (l'intercepteur ajoute le jeton) puis on pointe l'image sur une URL
+   * locale. Les URL creees sont revoquees a la destruction du composant.
+   */
+  chargerFichier(idphoto: number): Observable<string> {
+    return this.http
+      .get(`${API_URL}/api/photos/${idphoto}/fichier`, { responseType: 'blob' })
+      .pipe(map((blob) => URL.createObjectURL(blob)));
   }
 }

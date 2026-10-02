@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,13 +34,19 @@ public class  JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtUtil.validerAccessToken(token)) {
                     String email = jwtUtil.extraireEmail(token);
                     UserDetails utilisateur = utilisateurDetailsService.loadUserByUsername(email);
+                    // Un compte desactive ou verrouille doit perdre l'acces immediatement,
+                    // meme si son jeton n'est pas encore expire. Sans cette verification,
+                    // un employe licencie conservait l'acces jusqu'a 24 h (et 30 jours via /refresh).
+                    if (!utilisateur.isEnabled() || !utilisateur.isAccountNonLocked()) {
+                        throw new BadCredentialsException("Compte desactive");
+                    }
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             utilisateur, null, utilisateur.getAuthorities());
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception ignore) {
-                // jeton invalide ou compte introuvable : on laisse l'utilisateur non authentifié
+                // jeton invalide, expire, compte desactive ou introuvable : on laisse l'utilisateur non authentifie
             }
         }
         filterChain.doFilter(request, response);

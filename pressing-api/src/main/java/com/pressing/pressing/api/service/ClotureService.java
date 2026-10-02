@@ -1,4 +1,5 @@
 package com.pressing.pressing.api.service;
+import com.pressing.pressing.api.common.exception.ConflitDonneeException;
 import com.pressing.pressing.api.dto.request.ClotureRequestDTO;
 import com.pressing.pressing.api.dto.response.ClotureDTO;
 import com.pressing.pressing.api.dto.response.MontantParMoyenDTO;
@@ -50,6 +51,18 @@ public class ClotureService {
             throw new IllegalArgumentException("Le montant compté en caisse est obligatoire");
         }
         LocalDate jour = requete.getDate() != null ? requete.getDate() : LocalDate.now();
+        // Une journee ne se cloture qu'une fois : sinon l'historique de caisse contient
+        // des doublons et les totaux par jour sont faux. Le frontend masque bien le
+        // formulaire quand la journee est cloturee, mais l'API doit s'en proteger seule
+        // (appel direct, deux postes, onglet laisse ouvert...).
+        clotureCaisseRepository.findTopByDateOrderByDateClotureDesc(jour).ifPresent(existante -> {
+            throw new ConflitDonneeException(
+                    "La caisse du " + jour + " est déjà clôturée"
+                            + (existante.getDateCloture() != null
+                                    ? " depuis le " + existante.getDateCloture().toLocalDate()
+                                    : "")
+                            + ". Une journée ne peut être clôturée qu'une seule fois.");
+        });
         List<Paiement> paiements = paiementRepository
                 .findByDatePaiementBetween(jour.atStartOfDay(), jour.atTime(23, 59, 59));
         ClotureDTO rapport = calculer(jour, paiements);

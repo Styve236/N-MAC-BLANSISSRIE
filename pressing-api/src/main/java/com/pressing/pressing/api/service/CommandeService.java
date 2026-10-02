@@ -4,14 +4,17 @@ import com.pressing.pressing.api.dto.request.CommandeRequestDTO;
 import com.pressing.pressing.api.dto.request.LigneCommandeDTO;
 import com.pressing.pressing.api.dto.request.PaiementDTO;
 import com.pressing.pressing.api.dto.response.CommandeDTO;
+import com.pressing.pressing.api.dto.response.CommandeDetailDTO;
 import com.pressing.pressing.api.entite.Client;
 import com.pressing.pressing.api.entite.Commande;
 import com.pressing.pressing.api.entite.LigneCommande;
 import com.pressing.pressing.api.entite.MoyenPaiement;
 import com.pressing.pressing.api.entite.StatutCommande;
 import com.pressing.pressing.api.entite.Tarif;
+import com.pressing.pressing.api.mapper.CommandeMapper;
 import com.pressing.pressing.api.repository.ClientRepository;
 import com.pressing.pressing.api.repository.CommandeRepository;
+import com.pressing.pressing.api.repository.CommandeSpecification;
 import com.pressing.pressing.api.repository.TarifRepository;
 import com.pressing.pressing.api.service.NotificationSmsService;
 import com.pressing.pressing.api.service.PaiementService;
@@ -20,11 +23,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
+import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommandeService
 {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CommandeService.class);
+
     private final CommandeRepository commandeRepository;
     private final ClientRepository clientRepository;
     private final TarifRepository tarifRepository;
@@ -42,8 +47,12 @@ public class CommandeService
     private final NotificationService notificationService;
     private final LivraisonService livraisonService;
     private final PaiementService paiementService;
+    private final CommandeMapper commandeMapper;
 
-    public Commande creerCommande(CommandeRequestDTO dto) {
+    // Transaction unique : commande + lignes + acompte sont enregistres ensemble.
+    // Avant, un echec de l'acompte laissait une commande sans paiement partiel.
+    @Transactional
+    public CommandeDetailDTO creerCommande(CommandeRequestDTO dto) {
         if (dto.getClientId() == null) {
             throw new IllegalArgumentException("Le client est obligatoire");
         }
@@ -91,11 +100,23 @@ public class CommandeService
         try {
             notificationService.notifierNouvelleCommande(commandeEnregistree, dto.getMessageAgent());
         } catch (Exception ex) {
-            // la commande reste enregistrée
+            // C'est ici que la commande disparaissait : la notification tourne dans la
+            // meme transaction, son échec la marque rollback-only, et le catch ne
+            // l'empêche pas. Le commit levait alors UnexpectedRollbackException (500)
+            // et la commande était perdue. La notification a son propre transaction.
+            log.warn("Notification interne non creee pour la commande {} : {}",
+                    commandeEnregistree.getIdcommande(), ex.getMessage(), ex);
         }
 
-        notificationSmsService.envoyerConfirmationCommande(commandeEnregistree);
-        return commandeEnregistree;
+        // SMS de confirmation : un échec de l'envoi ne doit pas annuler la commande
+        // (la transaction annulerait tout si l'exception remontait).
+        try {
+            notificationSmsService.envoyerConfirmationCommande(commandeEnregistree);
+        } catch (Exception ex) {
+            log.warn("SMS de confirmation non envoyé pour la commande {} : {}",
+                    commandeEnregistree.getIdcommande(), ex.getMessage());
+        }
+        return commandeMapper.toDTO(commandeEnregistree);
     }
 
     private LigneCommande creerLigneCommande(Commande commande, LigneCommandeDTO dto) {
@@ -144,8 +165,22 @@ public class CommandeService
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /**
+     * Le numero de ticket sert d'identifiant dans un lien de recu public
+     * (/recu/{numeroTicket}) : il doit donc etre devinable le moins possible.
+     * 24 caracteres hexadecimaux aleatoires = 96 bits d'entropie, soit ~10^29
+     * combinaisons. SecureRandom plutot que UUID.randomUUID(), qui s'appuie sur un
+     * generateur partage et n'est pas destine a un usage securitaire.
+     */
     private String genererNumeroTicket() {
-        return "TK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        byte[] octets = new byte[12];
+        new SecureRandom().nextBytes(octets);
+        StringBuilder ticket = new StringBuilder("TK-");
+        for (byte octet : octets) {
+            ticket.append(Character.forDigit((octet >> 4) & 0xF, 16));
+            ticket.append(Character.forDigit(octet & 0xF, 16));
+        }
+        return ticket.toString().toUpperCase();
     }
 
     public BigDecimal getResteAPayer(Long commandeId){
@@ -172,51 +207,37 @@ public class CommandeService
 
     @Transactional(readOnly = true)
     public List<Commande> lister(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin) {
-        return commandeRepository.findAll().stream()
-                .filter(c -> clientId == null || c.getClient().getIdclient().equals(clientId))
-                .filter(c -> statut == null || c.getStatut() == statut)
-                .filter(c -> dateDebut == null || (c.getDateCreation() != null && !c.getDateCreation().toLocalDate().isBefore(dateDebut)))
-                .filter(c -> dateFin == null || (c.getDateCreation() != null && !c.getDateCreation().toLocalDate().isAfter(dateFin)))
-                .sorted(Comparator.comparing(Commande::getDateCreation).reversed())
-                .toList();
+        return commandeRepository.findAll(
+                CommandeSpecification.filtre(clientId, statut, dateDebut, dateFin),
+                Sort.by(Sort.Direction.DESC, "dateCreation"));
     }
 
     @Transactional(readOnly = true)
-    public Page<Commande> listerPaginer(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
-        if (clientId != null && statut != null) {
-            return commandeRepository.findByClientIdclientAndStatut(clientId, statut, pageable);
-        }
-        if (clientId != null) {
-            return commandeRepository.findByClientIdclient(clientId, pageable);
-        }
-        if (statut != null) {
-            return commandeRepository.findByStatut(statut, pageable);
-        }
-        if (dateDebut != null && dateFin != null) {
-            return commandeRepository.findByDateCreationBetween(dateDebut.atStartOfDay(), dateFin.atTime(23, 59, 59), pageable);
-        }
-        if (clientId == null && statut == null && dateDebut == null && dateFin == null) {
-            return commandeRepository.findAll(pageable);
-        }
-        // Filtres partiels (une seule date, ou client + dates...) : on filtre en mémoire puis on pagine
-        List<Commande> filtrées = lister(clientId, statut, dateDebut, dateFin);
-        long total = filtrées.size();
-        int debut = (int) Math.min(pageable.getOffset(), total);
-        List<Commande> contenu = filtrées.subList(debut, (int) Math.min(debut + pageable.getPageSize(), total));
-        return new PageImpl<>(contenu, pageable, total);
+    public Page<CommandeDetailDTO> listerPaginer(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
+        // Tous les filtres sont appliques en base : plus de chargement de toutes les
+        // commandes pour les trier en Java (les filtres partiels sont desormais geres aussi).
+        return commandeRepository
+                .findAll(CommandeSpecification.filtre(clientId, statut, dateDebut, dateFin), pageable)
+                .map(commandeMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public Commande consulter(Long commandeId) {
+    public CommandeDetailDTO consulter(Long commandeId) {
+        return commandeMapper.toDTO(consulterEntite(commandeId));
+    }
+
+    @Transactional(readOnly = true)
+    public Commande consulterEntite(Long commandeId) {
         return commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new RessourceNotFoundException("Commande introuvable avec l'id : " + commandeId));
     }
 
-    public Commande changerStatut(Long commandeId, StatutCommande nouveauStatut) {
+    @Transactional
+    public CommandeDetailDTO changerStatut(Long commandeId, StatutCommande nouveauStatut) {
         if (nouveauStatut == null) {
             throw new IllegalArgumentException("Le statut est obligatoire");
         }
-        Commande commande = consulter(commandeId);
+        Commande commande = consulterEntite(commandeId);
         commande.setStatut(nouveauStatut);
         if (nouveauStatut == StatutCommande.RECUPERE && commande.getDateRetraitReelle() == null) {
             commande.setDateRetraitReelle(LocalDateTime.now());
@@ -229,10 +250,11 @@ public class CommandeService
                 // la commande reste PRET même si la création de la livraison échoue
             }
         }
-        return commandeRepository.findById(commandeId).orElse(commande);
+        return commandeMapper.toDTO(commandeRepository.findById(commandeId).orElse(commande));
     }
 
-    public Commande marquerPret(Long commandeId) {
+    @Transactional
+    public CommandeDetailDTO marquerPret(Long commandeId) {
         Commande commande = commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new IllegalArgumentException("Commande introuvable avec l'id: " + commandeId));
         commande.setStatut(StatutCommande.PRET);
@@ -245,7 +267,7 @@ public class CommandeService
         }
         Commande finale = commandeRepository.findById(commandeId).orElse(commandeMaj);
         notificationSmsService.envoyerLingePret(finale);
-        return finale;
+        return commandeMapper.toDTO(finale);
     }
 
     public int envoyerRappelImpayes() {
@@ -256,7 +278,7 @@ public class CommandeService
 
     private CommandeDTO toHistoriqueDTO(Commande c) {
         CommandeDTO dto = new CommandeDTO();
-        dto.setId(c.getIdcommande());
+        dto.setIdcommande(c.getIdcommande());
         dto.setNumeroTicket(c.getNumeroTicket());
         dto.setDateCreation(c.getDateCreation());
         dto.setDateRecuperationPrevue(c.getDateRecuperationPrevue());

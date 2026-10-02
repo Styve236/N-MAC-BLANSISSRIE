@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "photo")
+@Table(name = "photo", indexes = {
+        @Index(name = "idx_photo_ligne", columnList = "ligne_commande_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

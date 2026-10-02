@@ -24,6 +24,14 @@ public interface PaiementRepository extends JpaRepository<Paiement, Long> {
 
     List<Paiement> findByDatePaiementBetween(LocalDateTime debut, LocalDateTime fin);
 
+    // Agregats en base : evite de charger tous les paiements pour les additionner en Java
+    @Query("SELECT COALESCE(SUM(p.montant), 0) FROM Paiement p")
+    BigDecimal sumMontant();
+
+    @Query("SELECT p.moyenPaiement, SUM(p.montant) FROM Paiement p "
+            + "WHERE p.moyenPaiement IS NOT NULL AND p.montant IS NOT NULL GROUP BY p.moyenPaiement")
+    List<Object[]> sumMontantParMoyen();
+
     Page<Paiement> findAllByOrderByDatePaiementDesc(Pageable pageable);
 
     @Query("SELECT p FROM Paiement p JOIN p.commande c WHERE c.client.idclient = :clientId ORDER BY p.datePaiement DESC")

@@ -16,4 +16,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     Page<Client> findByNomContainsIgnoreCase(String nom, Pageable pageable);
 
     boolean existsByTelephone(String telephone);
+
+    boolean existsByIdclientAndCommandesIsNotEmpty(Long idclient);
 }

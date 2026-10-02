@@ -48,7 +48,33 @@ public class DashboardService {
         resume.setCommandesEnRetard(calculerCommandesEnRetard());
         resume.setClientsImpayes(calculerClientsImpayes());
         resume.setStockCritique(calculerStockCritique());
+        resume.setCommandesParStatut(compterParStatut());
+        resume.setEncaissementParMoyen(encaissementsParMoyen());
         return resume;
+    }
+
+    // Tous les statuts sont presents (meme a 0) pour que l'anneau garde le meme
+    // nombre de segments et ne "saute" pas quand un statut est vide.
+    private Map<String, Long> compterParStatut() {
+        Map<String, Long> parStatut = new LinkedHashMap<>();
+        for (StatutCommande statut : StatutCommande.values()) {
+            parStatut.put(statut.name(), commandeRepository.countByStatut(statut));
+        }
+        return parStatut;
+    }
+
+    // Cumul global, comme l'anneau "commandes par statut" et comme la page Statistiques :
+    // les deux anneaux du meme ecran doivent porter la meme periode, sinon leurs
+    // totaux centres ne sont pas comparables.
+    private Map<String, BigDecimal> encaissementsParMoyen() {
+        Map<String, BigDecimal> parMoyen = new LinkedHashMap<>();
+        for (Object[] ligne : paiementRepository.sumMontantParMoyen()) {
+            if (ligne[0] == null) {
+                continue;
+            }
+            parMoyen.put(ligne[0].toString(), nonNull((BigDecimal) ligne[1]));
+        }
+        return parMoyen;
     }
 
     private DashboardTendancesDTO calculerTendances(LocalDate aujourdhui, LocalDate debutSemaine, LocalDate debutMois) {

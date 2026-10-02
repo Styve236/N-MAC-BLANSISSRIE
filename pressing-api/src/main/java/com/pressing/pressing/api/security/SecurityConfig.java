@@ -33,7 +33,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> { })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers
+                        // Envoye uniquement sur les requetes securisees (HTTPS derriere le reverse proxy).
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                        .referrerPolicy(referrer -> referrer
+                                .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)))
                 .exceptionHandling(err -> err
                         .authenticationEntryPoint((request, response, ex) -> {
                             response.setStatus(401);
@@ -43,12 +51,15 @@ public class SecurityConfig {
                         .accessDeniedHandler((request, response, ex) -> {
                             response.setStatus(403);
                             response.setContentType("application/json");
-                            response.getWriter().write("{\"status\":403,\"message\":\"Accès refusé : vos droits ne permettent pas cette action\"}");
+                            response.getWriter().write("{\"status\":403,\"message\":\"Acc��s refusǸ : vos droits ne permettent pas cette action\"}");
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public : login, page de test, reçus imprimables (lien client), affichage des photos,
-                        // et la documentation Swagger/OpenAPI (pages HTML + JSON/YAML)
+                        // Public : connexion, rafraichissement, deconnexion, page d'accueil,
+                        // recus imprimables (lien envoye par SMS au client) et documentation
+                        // Swagger/OpenAPI (pages HTML + JSON/YAML).
+                        // Les photos de commandes ne sont PAS publiques : elles exposent le
+                        // linge des clients et leurs identifiants etaient devinables.
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/refresh",
@@ -56,7 +67,6 @@ public class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/recu/**",
-                                "/api/photos/*/fichier",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs",

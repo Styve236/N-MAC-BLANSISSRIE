@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "paiement")
+@Table(name = "paiement", indexes = {
+        @Index(name = "idx_paiement_commande", columnList = "commande_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor

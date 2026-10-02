@@ -2,6 +2,10 @@ package com.pressing.pressing.api.common.exception;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,10 @@ public class GlobalExceptionHandler {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // Repris dans le message d'erreur pour ne plus Mentir (la config dit 10MB, pas 5 Mo)
+    @Value("${spring.servlet.multipart.max-file-size:10MB}")
+    private String tailleMaxFichier;
+
     @ExceptionHandler(RessourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> ressourceIntrouvable(RessourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -28,6 +36,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DonneeDejaExistanteException.class)
     public ResponseEntity<Map<String, Object>> donneeDejaExistante(DonneeDejaExistanteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(erreur(ex.getMessage(), HttpStatus.CONFLICT.value()));
+    }
+
+    @ExceptionHandler(ConflitDonneeException.class)
+    public ResponseEntity<Map<String, Object>> conflitDonnee(ConflitDonneeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(erreur(ex.getMessage(), HttpStatus.CONFLICT.value()));
     }
@@ -75,7 +89,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> uploadTropGros(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(erreur("Fichier trop volumineux (maximum 5 Mo)", HttpStatus.PAYLOAD_TOO_LARGE.value()));
+                .body(erreur("Fichier trop volumineux (maximum " + tailleMaxFichier + ")", HttpStatus.PAYLOAD_TOO_LARGE.value()));
+    }
+
+    /**
+     * Un tri invalide (GET /api/tarifs?sort=bogus) est une requete client erronee,
+     * pas une panne serveur : repondre 400 plutot que 500 evite de noyer les logs
+     * de stack traces et de faire croire a un incident.
+     *
+     * Deux cas distincts : propriete inconnue sur l'entite (PropertyReferenceException)
+     * et expression refusee par la couche JPA (InvalidDataAccessApiUsageException).
+     */
+    @ExceptionHandler({PropertyReferenceException.class, InvalidDataAccessApiUsageException.class, InvalidDataAccessResourceUsageException.class})
+    public ResponseEntity<Map<String, Object>> requeteTriInvalide(RuntimeException ex) {
+        log.warn("Requete de tri invalide rejetee : {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(erreur("Critère de tri invalide", HttpStatus.BAD_REQUEST.value()));
     }
 
     @ExceptionHandler(Exception.class)

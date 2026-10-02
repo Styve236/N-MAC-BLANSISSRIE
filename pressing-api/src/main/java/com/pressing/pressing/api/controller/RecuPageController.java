@@ -8,7 +8,9 @@ import com.pressing.pressing.api.service.RecuService;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,10 +29,19 @@ public class RecuPageController {
 
     private final RecuService recuService;
 
+    /**
+     * Le recu reste accessible sans authentification : c'est un lien envoye par SMS
+     * au client, qui n'a pas de compte. Deux protections compensent cela : un ticket
+     * long et non devinable, et un limiteur de tentatives (RateLimitInterceptor).
+     * La page est aussi marquee no-store pour ne pas finir dans un cache partage.
+     */
     @GetMapping(value = "/{numeroTicket}", produces = MediaType.TEXT_HTML_VALUE)
-    public String page(@PathVariable String numeroTicket) {
+    public ResponseEntity<String> page(@PathVariable String numeroTicket) {
         RecuDTO recu = recuService.getRecuParNumeroTicket(numeroTicket);
-        return html(recu);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .contentType(MediaType.TEXT_HTML)
+                .body(html(recu));
     }
 
     private String html(RecuDTO recu) {

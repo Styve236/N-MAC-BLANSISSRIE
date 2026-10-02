@@ -34,6 +34,7 @@ public class Notification {
     @Builder.Default
     private LocalDateTime dateCreation = LocalDateTime.now();
 
+    @Builder.Default
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NotificationLecture> lectures = new ArrayList<>();
 }

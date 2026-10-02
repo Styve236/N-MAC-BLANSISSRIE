@@ -29,9 +29,16 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
+    // Les durees de application.properties sont exprimees en SECONDES.
+    // Date.getTime() attend des millisecondes : sans cette conversion, un token
+    // configure a 86400_secondes expirait au bout de 86,4 secondes.
+    private long versMillisecondes(long secondes) {
+        return secondes * 1000L;
+    }
+
     public String genererToken(UtilisateurPrincipal principal) {
         Date maintenant = new Date();
-        Date expirationDate = new Date(maintenant.getTime() + expiration);
+        Date expirationDate = new Date(maintenant.getTime() + versMillisecondes(expiration));
         return Jwts.builder()
                 .subject(principal.getUsername())
                 .claim("role", principal.getUsers().getRole().name())
@@ -44,7 +51,7 @@ public class JwtUtil {
 
     public String genererRefreshToken(UtilisateurPrincipal principal) {
         Date maintenant = new Date();
-        Date expirationDate = new Date(maintenant.getTime() + refreshExpiration);
+        Date expirationDate = new Date(maintenant.getTime() + versMillisecondes(refreshExpiration));
         return Jwts.builder()
                 .subject(principal.getUsername())
                 .claim("type", "refresh")
@@ -56,7 +63,11 @@ public class JwtUtil {
     }
 
     public long getRefreshExpirationMillis() {
-        return refreshExpiration;
+        return versMillisecondes(refreshExpiration);
+    }
+
+    public long getAccessExpirationSecondes() {
+        return expiration;
     }
 
     public String extraireEmail(String token) {

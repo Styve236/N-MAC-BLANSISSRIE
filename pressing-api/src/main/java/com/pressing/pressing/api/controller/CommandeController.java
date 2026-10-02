@@ -2,8 +2,8 @@ package com.pressing.pressing.api.controller;
 import com.pressing.pressing.api.dto.request.CommandeRequestDTO;
 import com.pressing.pressing.api.dto.request.PaiementDTO;
 import com.pressing.pressing.api.dto.response.CommandeDTO;
+import com.pressing.pressing.api.dto.response.CommandeDetailDTO;
 import com.pressing.pressing.api.dto.response.PaiementResponseDTO;
-import com.pressing.pressing.api.entite.Commande;
 import com.pressing.pressing.api.entite.StatutCommande;
 import com.pressing.pressing.api.service.CommandeService;
 import com.pressing.pressing.api.service.PaiementService;
@@ -34,12 +34,12 @@ public class CommandeController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
-    public Commande creer(@RequestBody CommandeRequestDTO dto){
+    public CommandeDetailDTO creer(@RequestBody CommandeRequestDTO dto){
         return commandeService.creerCommande(dto);
     }
 
     @GetMapping
-    public Page<Commande> lister(
+    public Page<CommandeDetailDTO> lister(
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) StatutCommande statut,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
@@ -49,17 +49,20 @@ public class CommandeController {
     }
 
     @GetMapping("/{id}")
-    public Commande consulter(@PathVariable Long id) {
+    public CommandeDetailDTO consulter(@PathVariable Long id) {
         return commandeService.consulter(id);
     }
 
     @PatchMapping("/{id}/statut")
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE','AGENT_PRODUCTION','LIVREUR')")
-    public Commande changerStatut(@PathVariable Long id, @RequestBody Map<String, StatutCommande> body) {
+    public CommandeDetailDTO changerStatut(@PathVariable Long id, @RequestBody Map<String, StatutCommande> body) {
         return commandeService.changerStatut(id, body.get("statut"));
     }
 
+    // L'historique complet des commandes d'un client est une donnee de gestion
+    // (montants, Articles, fidelite) : reserve a l'accueil et a l'administration.
     @GetMapping("/client/{clientId}")
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
     public List<CommandeDTO> historiqueParClient(@PathVariable Long clientId){
         return commandeService.getHistoriqueParClient(clientId);
     }
@@ -79,7 +82,7 @@ public class CommandeController {
 
     @PostMapping("/{id}/pret")
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE','AGENT_PRODUCTION')")
-    public Commande marquerPret(@PathVariable Long id){
+    public CommandeDetailDTO marquerPret(@PathVariable Long id){
         return commandeService.marquerPret(id);
     }
 

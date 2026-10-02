@@ -14,7 +14,9 @@ import java.util.List;
 
 
 @Entity
-@Table(name = "lignecommande")
+@Table(name = "lignecommande", indexes = {
+        @Index(name = "idx_lignecommande_commande", columnList = "commande_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
