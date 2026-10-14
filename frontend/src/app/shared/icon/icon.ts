@@ -1,4 +1,5 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 export type IconName =
   | 'dashboard'
@@ -196,10 +197,14 @@ const ICONES: Record<string, string> = {
 export class Icon {
   readonly nom = input.required<IconName | string>();
   readonly taille = input<number>(20);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  protected markup(): string {
+  // Le sanitizer HTML d'Angular supprime les balises SVG ; on contourne avec le
+  // bypass car le contenu provient uniquement de la table ICONES (aucune entree utilisateur).
+  protected readonly markup = computed<SafeHtml>(() => {
     const inner = ICONES[this.nom()] ?? ICONES['x'];
     const taille = this.taille();
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${taille}" height="${taille}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
-  }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${taille}" height="${taille}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  });
 }
