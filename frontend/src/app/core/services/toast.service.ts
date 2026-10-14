@@ -31,6 +31,9 @@ export class ToastService {
   }
 
   private ajouter(type: TypeToast, message: string): void {
+    if (this.toasts().some((t) => t.type === type && t.message === message)) {
+      return;
+    }
     const id = ++this.compteur;
     this.toasts.update((liste) => [...liste, { id, type, message }]);
     setTimeout(() => this.retirer(id), 5000);

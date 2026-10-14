@@ -15,9 +15,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "commande", indexes = {
-        @Index(name = "idx_commande_client_date", columnList = "client_id, dateCreation"),
+        @Index(name = "idx_commande_client_date", columnList = "client_id, date_creation"),
         @Index(name = "idx_commande_statut", columnList = "statut"),
-        @Index(name = "idx_commande_date_creation", columnList = "dateCreation")
+        @Index(name = "idx_commande_date_creation", columnList = "date_creation")
 })
 @Getter
 @Setter
@@ -78,6 +78,13 @@ public class Commande {
     // Permet au livreur de retirer une livraison terminée de son flux (l'admin la voit toujours)
     @Builder.Default
     private boolean masqueeParLivreur = false;
+
+    // Archivage : une commande livrée peut etre retiree de l'atelier pour liberer
+    // l'ecran des commandes actives. Elle reste en base (consultable via la vue Archives).
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean archivee = false;
+    private LocalDateTime dateArchivage;
 
     // methode pour ajouter un paiement
     public void addpaiement(Paiement p){

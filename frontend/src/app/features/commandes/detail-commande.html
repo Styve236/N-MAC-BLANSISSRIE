@@ -213,6 +213,11 @@
         </button>
       }
 
+      <button class="btn" (click)="ouvrirRecu()">
+        <app-icon nom="file-text" [taille]="16" />
+        Reçu 80mm
+      </button>
+
       <button class="btn" (click)="telechargerRecuPdf()">
         <app-icon nom="download" [taille]="16" />
         Reçu PDF
@@ -270,4 +275,130 @@
       </div>
     }
   </div>
+}
+
+<!-- Reçu thermique 80mm -->
+@if (recuOuvert()) {
+  @if (commande(); as c) {
+    <div class="recu-overlay" (click)="fermerRecu()">
+      <div class="recu-panneau" (click)="$event.stopPropagation()">
+        <header class="recu-entete">
+          <div class="recu-entete-titre">
+            Aperçu du Ticket / Reçu de Dépôt
+            <span class="recu-entete-ticket">#{{ c.numeroTicket }}</span>
+          </div>
+          <button class="recu-fermer" type="button" (click)="fermerRecu()">
+            <app-icon nom="x" [taille]="18" />
+          </button>
+        </header>
+
+        <div class="recu-corps">
+          <div id="thermal-receipt" class="recu-papier">
+            <div class="recu-marque">
+              <h2>N MAC BLANCHISSERIE</h2>
+              <p>Soin &amp; Entretien Textile Professionnel · DOUALA PK8</p>
+              <p>Localisation : Douala PK8 (Axe Lourd)</p>
+              <p>Tél : +237 699 10 20 30 / 675 22 33 44</p>
+            </div>
+
+            <div class="recu-coupe recu-centre">
+              <div class="recu-ticket-label">TICKET N°</div>
+              <div class="recu-ticket-num">{{ c.numeroTicket }}</div>
+              <div class="recu-codebarres">
+                @for (w of codeBarres; track $index) {
+                  <span [style.width.px]="w * 1.5"></span>
+                }
+              </div>
+            </div>
+
+            <div class="recu-coupe">
+              <div class="recu-ligne"><span>Client :</span><strong>{{ c.client?.nom }}</strong></div>
+              <div class="recu-ligne"><span>Contact :</span><strong>{{ c.client?.telephone }}</strong></div>
+              @if (c.client?.quartier || c.client?.ville) {
+                <div class="recu-ligne">
+                  <span>Quartier :</span>
+                  <span>{{ c.client?.quartier }}{{ c.client?.quartier && c.client?.ville ? ', ' : '' }}{{ c.client?.ville }}</span>
+                </div>
+              }
+              <div class="recu-ligne"><span>Déposé le :</span><span>{{ c.dateCreation | dateFr }}</span></div>
+              <div class="recu-ligne recu-ambre">
+                <span>Retrait prévu :</span>
+                <span>{{ c.dateRecuperationPrevue ? (c.dateRecuperationPrevue | dateFr) : '—' }}</span>
+              </div>
+            </div>
+
+            <div class="recu-coupe">
+              <div class="recu-table-entete">
+                <span>Qté</span>
+                <span>Désignation</span>
+                <span class="recu-right">Total</span>
+              </div>
+              @for (l of c.lignes ?? []; track l.idligne) {
+                <div class="recu-article">
+                  <span class="recu-article-qte">{{ quantiteLigne(l) }}</span>
+                  <span class="recu-article-nom">
+                    {{ designationLigne(l) }}
+                    @if (l.poids && l.tarif.prixauklo) {
+                      <em>({{ l.tarif.prixauklo | cfa }}/kg)</em>
+                    }
+                  </span>
+                  <span class="recu-article-montant">{{ l.montant | cfa }}</span>
+                </div>
+                @if (l.description) {
+                  <div class="recu-article-note">Note : {{ l.description }}</div>
+                }
+              }
+            </div>
+
+            <div class="recu-coupe">
+              <div class="recu-ligne">
+                <span>Total prestations :</span>
+                <strong>{{ c.montantTotal | cfa }}</strong>
+              </div>
+              @if ((c.remise ?? 0) > 0) {
+                <div class="recu-ligne recu-vert">
+                  <span>Remise fidélité :</span>
+                  <span>- {{ c.remise | cfa }}</span>
+                </div>
+              }
+              <div class="recu-ligne recu-vert">
+                <span>Payé ({{ dernierMoyen() }}) :</span>
+                <span>- {{ c.montantPaye | cfa }}</span>
+              </div>
+              <div
+                class="recu-ligne recu-total"
+                [class.recu-vert]="resteRecu() <= 0"
+                [class.recu-rouge]="resteRecu() > 0"
+              >
+                <span>{{ resteRecu() > 0 ? 'Reste à percevoir :' : 'Solde intégral réglé' }}</span>
+                <strong>{{ resteRecu() | cfa }}</strong>
+              </div>
+            </div>
+
+            <div class="recu-conditions">
+              <p class="recu-conditions-titre">CONDITIONS PARTICULIÈRES</p>
+              <p>• Le ticket original doit être présenté pour le retrait.</p>
+              <p>• Réclamation acceptée sous 48h maximum après retrait.</p>
+              <p>• Tout linge non réclamé après 90 jours sera remis à des associations caritatives.</p>
+              <p class="recu-conditions-pied">Merci de votre confiance !</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="recu-actions">
+          <div class="recu-actions-gauche">
+            <button class="btn btn-primary" (click)="imprimerRecu()">
+              <app-icon nom="file-text" [taille]="16" />
+              Imprimer (80mm)
+            </button>
+            <button class="btn btn-success" (click)="partagerWhatsApp()">
+              <app-icon nom="send" [taille]="16" />
+              WhatsApp
+            </button>
+          </div>
+          <button class="btn" (click)="fermerRecu()">Fermer</button>
+        </footer>
+      </div>
+    </div>
+  }
 }

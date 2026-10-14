@@ -1,6 +1,33 @@
-<h1 class="page-title">
-  {{ estLivreur() ? 'Mes livraisons' : 'Livraisons' }}
-</h1>
+<header class="liv-banniere">
+  <div class="liv-banniere-gauche">
+    <div class="liv-icone">
+      <app-icon nom="truck" [taille]="24" />
+    </div>
+    <div>
+      <div class="liv-titre-ligne">
+        <h1 class="page-title">
+          {{ estLivreur() ? 'Espace coursier & tournées' : 'Livraisons & tournées' }}
+        </h1>
+        @if (estLivreur()) {
+          <span class="liv-badge-actif">Livreur actif</span>
+        }
+      </div>
+      <p class="liv-sous-titre">
+        @if (estLivreur()) {
+          Coursier : <strong>{{ nomCourant() || '—' }}</strong> · Livraisons et collectes à domicile (Douala PK8 &amp; environs).
+        } @else {
+          Supervision des tournées — assignation livreur, suivi de statut et encaissements.
+        }
+      </p>
+    </div>
+  </div>
+
+  <div class="liv-solde">
+    <span class="liv-solde-label">Encaissé en tournée</span>
+    <strong class="liv-solde-valeur">{{ totalEncaisse() | cfa }}</strong>
+    <span class="liv-solde-note">{{ terminees().length }} mission(s) effectuée(s)</span>
+  </div>
+</header>
 
 @if (message()) {
   <div class="alert success">{{ message() }}</div>
@@ -9,16 +36,18 @@
   <div class="alert error">{{ erreur() }}</div>
 }
 
-<div class="toolbar">
-  <p style="margin:0;color:#64748b">
-    @if (estLivreur()) {
-      Suivi des livraisons qui vous sont assignées.
-    } @else {
-      Gestion des livraisons (assignation livreur, suivi de statut).
-    }
-  </p>
-  <button class="btn" (click)="charger()">
-    <app-icon nom="download" [taille]="16" />
+<div class="liv-onglets">
+  <button class="liv-onglet" [class.actif]="filtre() === 'all'" (click)="filtre.set('all')">
+    Toutes les missions ({{ livraisons().length }})
+  </button>
+  <button class="liv-onglet" [class.actif]="filtre() === 'pending'" (click)="filtre.set('pending')">
+    À effectuer ({{ enAttente().length }})
+  </button>
+  <button class="liv-onglet" [class.actif]="filtre() === 'completed'" (click)="filtre.set('completed')">
+    Terminées ({{ terminees().length }})
+  </button>
+  <button class="liv-onglet liv-onglet-refresh" (click)="charger()" title="Rafraîchir">
+    <app-icon nom="refresh" [taille]="14" />
     Rafraîchir
   </button>
 </div>
@@ -28,12 +57,12 @@
     <h3>Assigner la livraison #{{ id }}</h3>
     <div class="form-grid">
       <div class="field">
-        <label>Adresse de livraison <span style="color:#dc2626">*</span></label>
+        <label>Adresse de livraison <span class="liv-requis">*</span></label>
         <input [(ngModel)]="assignForm().adresseLivraison" placeholder="Ex : Bonabéri, rue du marché" />
       </div>
       @if (livreursOk()) {
         <div class="field">
-          <label>Livreur <span style="color:#dc2626">*</span></label>
+          <label>Livreur <span class="liv-requis">*</span></label>
           <select [(ngModel)]="assignForm().livreurId">
             <option [ngValue]="undefined">— Choisir —</option>
             @for (l of livreurs(); track l.idusers) {
@@ -43,9 +72,8 @@
         </div>
       } @else {
         <div class="field">
-          <label>Livreur (ID) <span style="color:#dc2626">*</span></label>
+          <label>Livreur (ID) <span class="liv-requis">*</span></label>
           <input type="number" min="1" [(ngModel)]="assignForm().livreurId" placeholder="ID du livreur" />
-          <small style="color:#94a3b8">Liste indisponible : rôle admin requis.</small>
         </div>
       }
       <div class="field">
@@ -69,72 +97,167 @@
 
 @if (enChargement()) {
   <p>Chargement…</p>
-} @else if (livraisons().length === 0) {
+} @else if (missionsFiltrees().length === 0) {
   <p class="empty">
     @if (estLivreur()) {
-      Aucune livraison assignée.
+      Aucune mission dans cette vue.
     } @else {
       Aucune livraison en attente.
     }
   </p>
 } @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Ticket</th>
-          <th>Client</th>
-          <th>Adresse</th>
-          <th class="num">Frais</th>
-          <th>Livreur</th>
-          <th>Prévue</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (l of livraisonsVisible(); track l.idcommande) {
-          <tr>
-            <td>{{ l.numeroTicket }}</td>
-            <td>{{ l.clientNom }}<br /><small>{{ l.clientTelephone }}</small></td>
-            <td>{{ l.adresseLivraison || '—' }}</td>
-            <td class="num">{{ (l.fraisLivraison ?? 0) | cfa }}</td>
-            <td>{{ l.livreurNom || '—' }}</td>
-            <td>{{ l.dateLivraisonPrevue ? (l.dateLivraisonPrevue | dateFr) : '—' }}</td>
-            <td><app-statut-badge [statut]="l.statutLivraison ?? ''" /></td>
-            <td>
-              <div class="actions">
-                <select [(ngModel)]="l.statutLivraison" (change)="appliquerStatut(l)">
-                  @for (s of statuts; track s) {
-                    <option [value]="s" [disabled]="s === 'LIVREE' && !l.payee">{{ libelleStatut(s) }}</option>
-                  }
-                </select>
-                @if (!estLivreur() && !l.livreurNom) {
-                  <button class="btn btn-sm" (click)="ouvrirAssign(l)" [disabled]="enCoursStatut()">
-                    <app-icon nom="edit" [taille]="14" />
-                    Assigner
-                  </button>
-                }
-                @if (estLivreur() && l.statutLivraison === 'LIVREE') {
-                  <button class="btn btn-sm" (click)="masquer(l)" [disabled]="enCoursMasquageId() === l.idcommande">
-                    <app-icon nom="trash" [taille]="14" />
-                    Retirer de ma liste
-                  </button>
-                }
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+  <div class="liv-liste">
+    @for (l of missionsFiltrees(); track l.idcommande) {
+      <article
+        class="liv-mission"
+        [class.liv-en-cours]="l.statutLivraison === 'EN_COURS'"
+        [class.liv-terminee]="l.statutLivraison === 'LIVREE'"
+      >
+        <div class="liv-mission-tete">
+          <div>
+            <div class="liv-mission-tags">
+              <span class="liv-type">
+                <app-icon nom="package" [taille]="12" />
+                Livraison linge
+              </span>
+              <span class="liv-ticket">#{{ l.numeroTicket }}</span>
+            </div>
+            <h3 class="liv-client">{{ l.clientNom || 'Client' }}</h3>
+            <div class="liv-adresse">
+              <app-icon nom="map-pin" [taille]="14" />
+              <span>{{ l.adresseLivraison || 'Adresse non renseignée' }}</span>
+            </div>
+          </div>
 
-    <app-pagination
-      [page]="livraisonPage()"
-      [totalPages]="livraisonTotalPages()"
-      [pageSize]="livraisonTaille()"
-      [tailles]="[10, 20, 50]"
-      (pageChange)="changerLivraisonPage($event)"
-      (pageSizeChange)="changerLivraisonTaille($event)"
-    />
+          <div class="liv-statut-bloc">
+            <span class="liv-statut" [class]="'liv-statut-' + (l.statutLivraison ?? '').toLowerCase()">
+              {{ libelleStatut(l.statutLivraison) }}
+            </span>
+            <span class="liv-echeance">
+              {{ l.dateLivraisonPrevue ? (l.dateLivraisonPrevue | dateFr) : '—' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="liv-mission-corps">
+          <div>
+            <span class="liv-corps-label">Livreur :</span>
+            <strong>{{ l.livreurNom || 'Non assigné' }}</strong>
+            @if (l.fraisLivraison) {
+              <span class="liv-frais">Frais : {{ l.fraisLivraison | cfa }}</span>
+            }
+          </div>
+          <div class="liv-montant">
+            <span class="liv-corps-label">Montant à percevoir :</span>
+            <strong [class.liv-montant-solde]="montantARecevoir(l) === 0">
+              {{ montantARecevoir(l) > 0 ? (montantARecevoir(l) | cfa) : 'Déjà payé' }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="liv-mission-actions">
+          <div class="liv-contacts">
+            <a class="liv-btn-contact" [href]="lienTel(l)">
+              <app-icon nom="phone" [taille]="15" />
+              Appeler
+            </a>
+            <a class="liv-btn-contact liv-whatsapp" [href]="lienWhatsApp(l)" target="_blank" rel="noopener">
+              <app-icon nom="send" [taille]="15" />
+              WhatsApp
+            </a>
+          </div>
+
+          <div class="liv-avancer">
+            @if (l.statutLivraison === 'A_LIVRER') {
+              <button class="btn btn-primary" (click)="demarrer(l)" [disabled]="enCoursStatut()">
+                <app-icon nom="navigation" [taille]="15" />
+                Démarrer l'itinéraire
+              </button>
+            }
+            @if (l.statutLivraison === 'EN_COURS') {
+              <button class="btn btn-primary liv-btn-valider" (click)="ouvrirValidation(l)" [disabled]="enCoursStatut()">
+                <app-icon nom="check-circle" [taille]="15" />
+                Valider remise
+              </button>
+            }
+            @if (l.statutLivraison === 'LIVREE') {
+              <span class="liv-fait">
+                <app-icon nom="check" [taille]="16" />
+                Remis au client
+              </span>
+              @if (estLivreur()) {
+                <button class="btn btn-sm" (click)="masquer(l)" [disabled]="enCoursMasquageId() === l.idcommande">
+                  <app-icon nom="trash" [taille]="14" />
+                  Retirer
+                </button>
+              }
+            }
+            @if (!estLivreur() && !l.livreurNom) {
+              <button class="btn" (click)="ouvrirAssign(l)">
+                <app-icon nom="edit" [taille]="15" />
+                Assigner
+              </button>
+            }
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+}
+
+@if (validation(); as m) {
+  <div class="liv-overlay" (click)="fermerValidation()">
+    <div class="liv-modale" (click)="$event.stopPropagation()">
+      <h3>Confirmation de remise</h3>
+      <p class="liv-modale-client">
+        Client : <strong>{{ m.clientNom }}</strong> · #{{ m.numeroTicket }}
+      </p>
+
+      @if (montantARecevoir(m) > 0) {
+        <div class="liv-modale-montant">
+          <span>Montant à encaisser :</span>
+          <strong>{{ montantARecevoir(m) | cfa }}</strong>
+        </div>
+        <label class="liv-modale-label">Mode de règlement utilisé :</label>
+        <div class="liv-moyens">
+          <button
+            type="button"
+            class="liv-moyen"
+            [class.actif]="moyenValidation() === 'MTN_MONEY'"
+            (click)="moyenValidation.set('MTN_MONEY')"
+          >
+            MTN MoMo
+          </button>
+          <button
+            type="button"
+            class="liv-moyen"
+            [class.actif]="moyenValidation() === 'ORANGE_MONEY'"
+            (click)="moyenValidation.set('ORANGE_MONEY')"
+          >
+            Orange M.
+          </button>
+          <button
+            type="button"
+            class="liv-moyen"
+            [class.actif]="moyenValidation() === 'ESPECES'"
+            (click)="moyenValidation.set('ESPECES')"
+          >
+            Espèces
+          </button>
+        </div>
+      } @else {
+        <div class="liv-deja-paye">
+          Commande déjà réglée au comptoir. Aucune somme à encaisser.
+        </div>
+      }
+
+      <div class="liv-modale-actions">
+        <button class="btn" (click)="fermerValidation()">Annuler</button>
+        <button class="btn btn-primary liv-btn-valider" (click)="confirmerValidation()" [disabled]="enCoursStatut()">
+          <app-icon nom="check" [taille]="16" />
+          Confirmer la livraison
+        </button>
+      </div>
+    </div>
   </div>
 }

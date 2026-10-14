@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { finalize, Observable, shareReplay, tap } from 'rxjs';
 import { ConnexionResponse, LoginRequest, RefreshTokenRequestDTO } from '../models/auth.model';
 import { API_URL } from '../config/constants';
 
@@ -12,6 +12,14 @@ const USER_KEY = 'press_user';
 export class AuthService {
   private readonly accessToken = signal<string | null>(null);
   private readonly currentUser = signal<ConnexionResponse | null>(null);
+
+  /**
+   * Refresh en vol partage entre tous les appelants. Sans lui, N requetes qui
+   * recoivent un 401 en meme temps declencheraient N appels /auth/refresh : le
+   * backend traite le 2e usage du meme refresh token comme un vol et revoque
+   * toutes les sessions (deconnexion en masse).
+   */
+  private refreshEnCours: Observable<ConnexionResponse> | null = null;
 
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
@@ -29,12 +37,19 @@ export class AuthService {
   }
 
   refresh(): Observable<ConnexionResponse> {
-    const body: RefreshTokenRequestDTO = { refreshToken: this.getRefreshToken() ?? '' };
-    return this.http.post<ConnexionResponse>(`${API_URL}/api/auth/refresh`, body).pipe(
-      tap((r) => {
-        this.garderSession(r);
-      })
-    );
+    if (!this.refreshEnCours) {
+      const body: RefreshTokenRequestDTO = { refreshToken: this.getRefreshToken() ?? '' };
+      this.refreshEnCours = this.http
+        .post<ConnexionResponse>(`${API_URL}/api/auth/refresh`, body)
+        .pipe(
+          tap((r) => this.garderSession(r)),
+          finalize(() => {
+            this.refreshEnCours = null;
+          }),
+          shareReplay({ bufferSize: 1, refCount: false })
+        );
+    }
+    return this.refreshEnCours;
   }
 
   logout(): Observable<void> {
@@ -85,13 +100,50 @@ export class AuthService {
   private restaurerSession(): void {
     const token = localStorage.getItem(ACCESS_KEY);
     const raw = localStorage.getItem(USER_KEY);
-    if (token && raw) {
-      try {
-        this.accessToken.set(token);
-        this.currentUser.set(JSON.parse(raw) as ConnexionResponse);
-      } catch {
-        this.viderSession();
-      }
+    if (!token || !raw) {
+      return;
     }
+    try {
+      const session = JSON.parse(raw) as ConnexionResponse;
+      this.accessToken.set(token);
+      this.currentUser.set(session);
+      // Jeton d'acces deja expire au chargement : renouvellement silencieux
+      // pour ne pas afficher l'ecran de connexion pour un simple CNF.
+      if (this.tokenExpiRe(token)) {
+        this.rafraichirSilencieusement();
+      }
+    } catch {
+      this.viderSession();
+    }
+  }
+
+  /** Lit la date d'expiration (claim "exp") sans verifier la signature. */
+  private tokenExpiRe(token: string): boolean {
+    try {
+      const partie = token.split('.')[1];
+      if (!partie) return false;
+      const payload = JSON.parse(
+        decodeURIComponent(
+          atob(partie.replace(/-/g, '+').replace(/_/g, '/'))
+            .split('')
+            .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+            .join('')
+        )
+      );
+      const exp = payload?.exp as number | undefined;
+      return typeof exp === 'number' && exp * 1000 <= Date.now();
+    } catch {
+      return false;
+    }
+  }
+
+  private rafraichirSilencieusement(): void {
+    if (!this.getRefreshToken()) {
+      this.viderSession();
+      return;
+    }
+    this.accessToken.set(null);
+    this.currentUser.set(null);
+    this.refresh().subscribe({ error: () => this.viderSession() });
   }
 }

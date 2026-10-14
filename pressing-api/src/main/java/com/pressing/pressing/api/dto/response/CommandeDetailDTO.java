@@ -33,6 +33,8 @@ public class CommandeDetailDTO {
     private LocalDateTime dateLivraisonReelle;
     private StatutLivraison statutLivraison;
     private Boolean masqueeParLivreur;
+    private boolean archivee;
+    private LocalDateTime dateArchivage;
     private ClientResumeDTO client;
     private List<LigneCommandeDetailDTO> lignes = new ArrayList<>();
     private List<PaiementResumeDTO> paiements = new ArrayList<>();

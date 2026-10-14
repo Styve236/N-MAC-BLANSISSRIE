@@ -1,0 +1,165 @@
+<div class="suivi-page">
+  <header class="suivi-marque">
+    <div class="suivi-logo">N</div>
+    <div>
+      <strong>N MAC Blanchisserie</strong>
+      <span>Douala · PK8 — Atelier &amp; pressing</span>
+    </div>
+  </header>
+
+  <section class="suivi-hero">
+    <span class="suivi-kicker">Portail de suivi en direct</span>
+    <h1>Suivez l'état de votre linge en temps réel</h1>
+    <p>
+      Saisissez le numéro de ticket figurant sur votre reçu
+      (ex : <strong>TK-8A93B1508F9A862D3986D34E</strong>).
+    </p>
+
+    <form class="suivi-recherche" (ngSubmit)="rechercher()">
+      <div class="suivi-champ">
+        <app-icon nom="search" [taille]="20" />
+        <input
+          type="text"
+          placeholder="Numéro de ticket…"
+          [ngModel]="recherche()"
+          (ngModelChange)="recherche.set($event)"
+          name="recherche"
+        />
+      </div>
+      <button type="submit" class="suivi-btn" [disabled]="enChargement()">
+        {{ enChargement() ? 'Recherche…' : 'Rechercher mon ticket' }}
+        <app-icon nom="arrow-right" [taille]="16" />
+      </button>
+    </form>
+
+    @if (erreur()) {
+      <p class="suivi-erreur">{{ erreur() }}</p>
+    }
+  </section>
+
+  @if (enChargement()) {
+    <p class="suivi-chargement">Recherche en cours…</p>
+  } @else if (resultat(); as r) {
+    <article class="suivi-resultat">
+      <div class="suivi-resultat-tete">
+        <div>
+          <span class="suivi-ticket-label">Ticket #{{ r.numeroTicket }}</span>
+          <h2>{{ r.nomClient }}</h2>
+          <p>{{ r.telephoneMasque }} · {{ libelleStatut(r.statut) }}</p>
+        </div>
+        <div class="suivi-dispo">
+          <span>Retrait prévu</span>
+          <strong>{{ r.dateRecuperationPrevue ? (r.dateRecuperationPrevue | dateFr) : 'À confirmer' }}</strong>
+        </div>
+      </div>
+
+      <div class="suivi-timeline">
+        <h3>Avancement des soins textiles</h3>
+        <div class="suivi-etapes">
+          @for (e of etapes; track e.cle; let i = $index) {
+            <div
+              class="suivi-etape"
+              [class.passe]="i < statutIndex(r.statut)"
+              [class.courante]="i === statutIndex(r.statut)"
+            >
+              <div class="suivi-puce">
+                @if (i < statutIndex(r.statut)) {
+                  <app-icon nom="check-circle" [taille]="20" />
+                } @else {
+                  <span>{{ i + 1 }}</span>
+                }
+              </div>
+              <div class="suivi-etape-texte">
+                <strong>{{ e.label }}</strong>
+                <span>{{ e.desc }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (estPret()) {
+          <div class="suivi-pret">
+            <app-icon nom="check-circle" [taille]="22" />
+            <div>
+              <strong>Votre linge est lavé, repassé et prêt au retrait !</strong>
+              <span>Présentez ce ticket au comptoir pour le récupérer.</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="suivi-details">
+        <div class="suivi-articles">
+          <h4>
+            Articles déposés
+            ({{ totalPieces() }} pièce(s)@if (totalKilos() > 0) { <span> + {{ totalKilos() }} kg</span> })
+          </h4>
+          @for (l of r.lignes ?? []; track $index) {
+            <div class="suivi-article">
+              <div>
+                @if (estPiece(l)) {
+                  <span class="suivi-qte">{{ l.quantite }}x</span>
+                } @else {
+                  <span class="suivi-qte suivi-qte-kg">{{ l.poids }} kg</span>
+                }
+                <span class="suivi-design">{{ l.designation || 'Prestation' }}</span>
+                @if (l.typeNettoyage) {
+                  <span class="suivi-nettoyage">{{ l.typeNettoyage }}</span>
+                }
+              </div>
+              <strong>{{ l.montant | cfa }}</strong>
+            </div>
+          }
+          @if ((r.lignes ?? []).length === 0) {
+            <p class="suivi-vide">Aucun article enregistré.</p>
+          }
+        </div>
+
+        <div class="suivi-reglement">
+          <h4>Règlement &amp; retrait</h4>
+          <div class="suivi-facture">
+            <div class="suivi-ligne">
+              <span>Total des prestations</span>
+              <strong>{{ r.montantTotal | cfa }}</strong>
+            </div>
+            <div class="suivi-ligne suivi-paye">
+              <span>Acompte réglé</span>
+              <strong>− {{ r.montantPaye | cfa }}</strong>
+            </div>
+            <div class="suivi-ligne suivi-solde" [class.suivi-solde-ok]="(r.resteAPayer ?? 0) <= 0">
+              <span>{{ (r.resteAPayer ?? 0) > 0 ? 'Solde restant à régler' : 'Facture soldée' }}</span>
+              <strong>{{ (r.resteAPayer ?? 0) > 0 ? (r.resteAPayer | cfa) : '0 FCFA' }}</strong>
+            </div>
+          </div>
+
+          <div class="suivi-adresse">
+            <app-icon nom="map-pin" [taille]="18" />
+            <div>
+              <strong>Retrait : N MAC Blanchisserie — Douala PK8</strong>
+              <span>Ouvert du lundi au samedi, de 07h30 à 19h30 sans interruption.</span>
+            </div>
+          </div>
+
+          <button type="button" class="suivi-btn-recu" (click)="ouvrirRecu()">
+            <app-icon nom="file-text" [taille]="16" />
+            Afficher le reçu complet
+          </button>
+        </div>
+      </div>
+    </article>
+  } @else if (rechercheEffectuee()) {
+    <div class="suivi-introuvable">
+      <app-icon nom="alert-circle" [taille]="38" />
+      <h3>Aucun ticket trouvé pour « {{ recherche() }} »</h3>
+      <p>
+        Vérifiez le code indiqué sur votre ticket de caisse, ou contactez le comptoir
+        au <strong>+237 699 00 11 22</strong>.
+      </p>
+    </div>
+  }
+
+  <footer class="suivi-pied">
+    <span>© N MAC Blanchisserie · Douala PK8</span>
+    <span>Suivi en ligne sécurisé</span>
+  </footer>
+</div>

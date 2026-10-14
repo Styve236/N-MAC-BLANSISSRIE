@@ -12,6 +12,10 @@ export const routes: Routes = [
     children: [{ path: '', loadComponent: () => import('./features/login/login').then((m) => m.Login) }],
   },
   {
+    path: 'suivi',
+    loadComponent: () => import('./features/suivi/suivi').then((m) => m.Suivi),
+  },
+  {
     path: '',
     component: MainLayout,
     canActivate: [authGuard],

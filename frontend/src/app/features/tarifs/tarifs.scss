@@ -1,0 +1,287 @@
+/* Écran 4 — Catalogue tarifaire */
+
+.cat-entete {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.cat-kicker {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primaire);
+  background: var(--primaire-soft);
+  border: 1px solid color-mix(in srgb, var(--primaire) 18%, transparent);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.cat-sous-titre {
+  margin: 6px 0 0;
+  max-width: 640px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.cat-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cat-recherche {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 220px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-champ);
+  padding: 0 12px;
+  color: var(--ink-muted);
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    height: 40px;
+    width: 100%;
+    padding-left: 8px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  &:focus-within {
+    border-color: var(--primaire);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 15%, transparent);
+  }
+}
+
+.cat-onglets {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 20px;
+  background: color-mix(in srgb, var(--line) 55%, var(--bg));
+  border-radius: var(--rayon-champ);
+  overflow-x: auto;
+}
+
+.cat-onglet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: calc(var(--rayon-champ) - 4px);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &.actif {
+    background: var(--panel);
+    color: var(--primaire);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+  }
+}
+
+.cat-grille {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cat-carte {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  overflow: hidden;
+  transition: border-color 150ms ease, transform 150ms ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--primaire) 35%, var(--line));
+    transform: translateY(-2px);
+  }
+
+  &.inactif {
+    opacity: 0.62;
+  }
+}
+
+.cat-carte-bandeau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--primaire-soft) 70%, var(--panel));
+  border-bottom: 1px solid var(--line);
+}
+
+.cat-carte-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--primaire-soft);
+  color: var(--primaire);
+}
+
+.cat-carte-prix {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.cat-carte-prix-label {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.cat-carte-prix-valeur {
+  font-family: var(--police-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primaire);
+}
+
+.cat-carte-corps {
+  padding: 16px 18px;
+  flex: 1;
+}
+
+.cat-carte-ligne {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+}
+
+.cat-pastille {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--danger);
+  background: var(--danger-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.cat-carte-desc {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.cat-carte-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--ink-discret, var(--ink-muted));
+  font-family: var(--police-mono);
+}
+
+.cat-carte-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.cat-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-conseils {
+  margin-top: 8px;
+  padding: 26px;
+  border-radius: var(--rayon-carte);
+  background: var(--primaire);
+  color: #fff;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.cat-conseils-grille {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cat-conseil {
+  background: rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 14px;
+  padding: 16px;
+
+  h3 {
+    margin: 0 0 6px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: color-mix(in srgb, #fff 82%, var(--primaire));
+  }
+}

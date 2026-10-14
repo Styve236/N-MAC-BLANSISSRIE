@@ -1,32 +1,30 @@
-<h1 class="page-title">Commandes</h1>
-
 <div class="toolbar">
-  <div class="filters">
-    <div class="field">
-      <label>Ticket</label>
-      <input [(ngModel)]="filtreTicket" placeholder="TK-…" (keyup.enter)="filtrerTicket()" />
-    </div>
-    <div class="field">
-      <label>Statut</label>
-      <select [(ngModel)]="filtreStatut" (change)="filtrer()">
-        <option value="">Tous</option>
-        @for (s of statuts; track s) {
-          <option [value]="s">{{ libelleStatut(s) }}</option>
-        }
-      </select>
-    </div>
-    <button class="btn" (click)="filtrerTicket()">
-      <app-icon nom="search" [taille]="16" />
-      Rechercher
-    </button>
+  <div>
+    <h1 class="page-title">Atelier &amp; Commandes</h1>
+    <p class="page-sub">Suivi de production N MAC Blanchisserie · Douala PK8</p>
   </div>
-
-  @if (peutEcrire()) {
-    <button class="btn btn-primary" (click)="nouveau()">
-      <app-icon nom="plus" [taille]="16" />
-      Nouvelle commande
-    </button>
-  }
+  <div class="toolbar-actions">
+    <div class="vue-toggle">
+      <button type="button" [class.actif]="vue() === 'atelier'" (click)="changerVue('atelier')">
+        <app-icon nom="layers" [taille]="15" />
+        Atelier
+      </button>
+      <button type="button" [class.actif]="vue() === 'liste'" (click)="changerVue('liste')">
+        <app-icon nom="list" [taille]="15" />
+        Liste
+      </button>
+      <button type="button" [class.actif]="vue() === 'archive'" (click)="changerVue('archive')">
+        <app-icon nom="package" [taille]="15" />
+        Archives
+      </button>
+    </div>
+    @if (peutEcrire()) {
+      <button class="btn btn-primary" (click)="nouveau()">
+        <app-icon nom="plus" [taille]="16" />
+        Nouvelle commande
+      </button>
+    }
+  </div>
 </div>
 
 @if (clientFiltre(); as cl) {
@@ -41,70 +39,360 @@
   </div>
 }
 
-@if (enChargement()) {
-  <p>Chargement…</p>
-} @else if (commandes().length === 0) {
-  <p class="empty">Aucune commande.</p>
-} @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th class="triable" (click)="trier('numeroTicket')">Ticket {{ flecheTri('numeroTicket') }}</th>
-          <th class="num">Poids</th>
-          <th class="num triable" (click)="trier('montantTotal')">Total {{ flecheTri('montantTotal') }}</th>
-          <th class="num">Reste à payer</th>
-          <th>Statut</th>
-          <th class="num triable" (click)="trier('montantPaye')">Payé {{ flecheTri('montantPaye') }}</th>
-          <th class="triable" (click)="trier('dateCreation')">Créée le {{ flecheTri('dateCreation') }}</th>
-          <th>À retirer</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (c of commandes(); track c.idcommande) {
-          <tr class="row-click" (click)="ouvrirDetail(c)">
-            <td>{{ c.numeroTicket }}</td>
-            <td class="num">{{ c.poidsTotal }} kg</td>
-            <td class="num">{{ c.montantTotal | cfa }}</td>
-            <td class="num">{{ c.resteAPayer | cfa }}</td>
-            <td>
-              <div class="statut-cell">
-                @if (peutGererStatuts()) {
-                  <select
-                    class="statut-select"
-                    [ngModel]="c.statut"
-                    (ngModelChange)="changerStatut(c, $event)"
-                    [disabled]="enChargement()"
-                  >
-                    <option [ngValue]="null" disabled>Sélectionner…</option>
-                    @for (s of statuts; track s) {
-                      <option [ngValue]="s">{{ libelleStatut(s) }}</option>
-                    }
-                  </select>
-                } @else {
-                  <app-statut-badge [statut]="c.statut ?? ''" />
-                }
-                @if ((c.resteAPayer ?? 0) > 0) {
-                  <span class="pill pill-red">Impayé</span>
-                }
-              </div>
-            </td>
-            <td class="num">{{ c.montantPaye | cfa }}</td>
-            <td>{{ c.dateCreation | dateFr }}</td>
-            <td>{{ c.dateRecuperationPrevue | dateFr:'date' }}</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+@if (erreur()) {
+  <div class="alert error">{{ erreur() }}</div>
+}
 
-    <app-pagination
-      [page]="page()"
-      [totalPages]="totalPages()"
-      [pageSize]="taille()"
-      [tailles]="[10, 20, 50]"
-      [desactive]="enChargement()"
-      (pageChange)="changerPage($event)"
-      (pageSizeChange)="changerTaille($event)"
-    />
+@if (vue() === 'atelier') {
+  <!-- KPI atelier -->
+  <div class="kanban-kpis">
+    <div class="kanban-kpi">
+      <span class="kanban-kpi-label">Pièces en atelier</span>
+      <div class="kanban-kpi-val">
+        {{ piecesEnAtelier() }} <small>vêtements</small>
+      </div>
+      <p class="kanban-kpi-sub">En cours de traitement</p>
+    </div>
+    <div class="kanban-kpi">
+      <span class="kanban-kpi-label bleu">En lavage / repassage</span>
+      <div class="kanban-kpi-val bleu">
+        {{ enCours() }} <small>dépôts actifs</small>
+      </div>
+      <p class="kanban-kpi-sub">Sur les postes machines</p>
+    </div>
+    <div class="kanban-kpi">
+      <span class="kanban-kpi-label vert">Prêts au retrait</span>
+      <div class="kanban-kpi-val vert">
+        {{ prets() }} <small>clients à servir</small>
+      </div>
+      <p class="kanban-kpi-sub vert">Rayon &amp; casiers prêts</p>
+    </div>
+    <div class="kanban-kpi">
+      <span class="kanban-kpi-label rose">En retard</span>
+      <div class="kanban-kpi-val rose">
+        {{ enRetard() }} <small>prioritaires</small>
+      </div>
+      <p class="kanban-kpi-sub rose">Délai de retrait dépassé</p>
+    </div>
   </div>
+
+  <!-- Barre de filtres -->
+  <div class="kanban-bar">
+    <div class="kanban-search">
+      <span class="kanban-search-ico"><app-icon nom="search" [taille]="15" /></span>
+      <input
+        [(ngModel)]="recherche"
+        placeholder="Rechercher un ticket, un nom ou un téléphone…"
+      />
+    </div>
+    <div class="segmented">
+      <button type="button" [class.actif]="filtrePriorite() === 'all'" (click)="filtrePriorite.set('all')">
+        Tous ({{ commandes().length }})
+      </button>
+      <button
+        type="button"
+        class="rose"
+        [class.actif]="filtrePriorite() === 'retard'"
+        (click)="filtrePriorite.set('retard')"
+      >
+        En retard ({{ enRetard() }})
+      </button>
+      <button
+        type="button"
+        [class.actif]="filtrePriorite() === 'standard'"
+        (click)="filtrePriorite.set('standard')"
+      >
+        À jour
+      </button>
+    </div>
+  </div>
+
+  @if (enChargement()) {
+    <p class="empty">Chargement de l'atelier…</p>
+  } @else {
+    <div class="kanban">
+      @for (col of colonnes; track col.id) {
+        <section class="kanban-colonne" [class]="'ton-' + col.ton">
+          <header class="kanban-col-tete">
+            <div>
+              <h3>{{ col.titre }}</h3>
+              <p>{{ col.sousTitre }}</p>
+            </div>
+            <span class="kanban-count">{{ cartesDe(col).length }}</span>
+          </header>
+
+          <div class="kanban-col-corps">
+            @if (cartesDe(col).length === 0) {
+              <p class="kanban-vide">Aucun ticket à cette étape</p>
+            } @else {
+              @for (c of cartesDe(col); track c.idcommande) {
+                <article class="kanban-carte" [class.en-retard]="estEnRetard(c)">
+                  <div class="kanban-carte-haut">
+                    <button class="kanban-ticket" (click)="ouvrirDetail(c)">
+                      #{{ c.numeroTicket }}
+                    </button>
+                    @if (estEnRetard(c)) {
+                      <span class="kanban-urgent">EN RETARD</span>
+                    } @else {
+                      <span class="kanban-resume">{{ resume(c) }}</span>
+                    }
+                  </div>
+
+                  <div class="kanban-client">
+                    <strong>{{ c.client?.nom || '—' }}</strong>
+                    <span>{{ c.client?.telephone }}</span>
+                  </div>
+
+                  @if (c.lignes?.length) {
+                    <div class="kanban-articles">
+                      @for (l of c.lignes!.slice(0, 2); track $index) {
+                        <div class="kanban-article">
+                          <span class="kanban-article-nom">
+                            {{ apercuLigne(l) }} {{ nomTarif(l) }}
+                          </span>
+                          @if (l.photos?.length) {
+                            <span class="kanban-photo">
+                              <app-icon nom="camera" [taille]="11" />
+                              Photo
+                            </span>
+                          }
+                        </div>
+                      }
+                      @if (c.lignes!.length > 2) {
+                        <div class="kanban-plus">+ {{ c.lignes!.length - 2 }} autre(s)…</div>
+                      }
+                    </div>
+                  }
+
+                  <div class="kanban-dates">
+                    <span class="kanban-etat">{{ libelleStatut(c.statut) }}</span>
+                    <span class="kanban-prevu">
+                      Prévu : {{ c.dateRecuperationPrevue | dateFr:'date' }}
+                    </span>
+                  </div>
+
+                  <div class="kanban-fin">
+                    <span>Total : {{ c.montantTotal | cfa }}</span>
+                    <span [class.solde]="(c.resteAPayer ?? 0) <= 0">
+                      {{ (c.resteAPayer ?? 0) > 0 ? 'Reste ' + (c.resteAPayer | cfa) : 'Payé' }}
+                    </span>
+                  </div>
+
+                  <div class="kanban-actions">
+                    <button class="kanban-btn" (click)="ouvrirDetail(c)">
+                      <app-icon nom="file-text" [taille]="12" />
+                      Ticket
+                    </button>
+                    @if (peutGererStatuts() && prochainStatut(c); as suivant) {
+                      <button class="kanban-btn primaire" (click)="avancer(c)" title="Avancer à : {{ libelleStatut(suivant) }}">
+                        Avancer
+                        <app-icon nom="chevron-right" [taille]="12" />
+                      </button>
+                    }
+                    @if (peutEcrire() && estLivre(c)) {
+                      <button
+                        class="kanban-btn archiver"
+                        (click)="archiver(c)"
+                        [disabled]="enArchivage() === c.idcommande"
+                        title="Archiver — retire ce ticket livré de l'atelier"
+                      >
+                        <app-icon nom="package" [taille]="12" />
+                        {{ enArchivage() === c.idcommande ? '…' : 'Archiver' }}
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+} @else if (vue() === 'liste') {
+  <!-- Vue liste (existante) -->
+  <div class="toolbar">
+    <div class="filters">
+      <div class="field">
+        <label>Ticket</label>
+        <input [(ngModel)]="filtreTicket" placeholder="TK-…" (keyup.enter)="filtrerTicket()" />
+      </div>
+      <div class="field">
+        <label>Statut</label>
+        <select [(ngModel)]="filtreStatut" (change)="filtrer()">
+          <option value="">Tous</option>
+          @for (s of statuts; track s) {
+            <option [value]="s">{{ libelleStatut(s) }}</option>
+          }
+        </select>
+      </div>
+      <button class="btn" (click)="filtrerTicket()">
+        <app-icon nom="search" [taille]="16" />
+        Rechercher
+      </button>
+    </div>
+  </div>
+
+  @if (enChargement()) {
+    <p>Chargement…</p>
+  } @else if (commandes().length === 0) {
+    <p class="empty">Aucune commande.</p>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="triable" (click)="trier('numeroTicket')">Ticket {{ flecheTri('numeroTicket') }}</th>
+            <th class="num">Poids</th>
+            <th class="num triable" (click)="trier('montantTotal')">Total {{ flecheTri('montantTotal') }}</th>
+            <th class="num">Reste à payer</th>
+            <th>Statut</th>
+            <th class="num triable" (click)="trier('montantPaye')">Payé {{ flecheTri('montantPaye') }}</th>
+            <th class="triable" (click)="trier('dateCreation')">Créée le {{ flecheTri('dateCreation') }}</th>
+            <th>À retirer</th>
+            <th class="num">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of commandes(); track c.idcommande) {
+            <tr class="row-click" (click)="ouvrirDetail(c)">
+              <td>{{ c.numeroTicket }}</td>
+              <td class="num">{{ c.poidsTotal }} kg</td>
+              <td class="num">{{ c.montantTotal | cfa }}</td>
+              <td class="num">{{ c.resteAPayer | cfa }}</td>
+              <td>
+                <div class="statut-cell">
+                  @if (peutGererStatuts()) {
+                    <select
+                      class="statut-select"
+                      [ngModel]="c.statut"
+                      (ngModelChange)="changerStatut(c, $event)"
+                      (click)="$event.stopPropagation()"
+                      [disabled]="enChargement()"
+                    >
+                      <option [ngValue]="null" disabled>Sélectionner…</option>
+                      @for (s of statuts; track s) {
+                        <option [ngValue]="s">{{ libelleStatut(s) }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <app-statut-badge [statut]="c.statut ?? ''" />
+                  }
+                  @if ((c.resteAPayer ?? 0) > 0) {
+                    <span class="pill pill-red">Impayé</span>
+                  }
+                </div>
+              </td>
+              <td class="num">{{ c.montantPaye | cfa }}</td>
+              <td>{{ c.dateCreation | dateFr }}</td>
+              <td>{{ c.dateRecuperationPrevue | dateFr:'date' }}</td>
+              <td class="num">
+                @if (peutEcrire() && estLivre(c)) {
+                  <button
+                    class="btn btn-sm archiver-btn"
+                    (click)="archiver(c); $event.stopPropagation()"
+                    [disabled]="enArchivage() === c.idcommande"
+                    title="Archiver ce ticket livré"
+                  >
+                    <app-icon nom="package" [taille]="13" />
+                    Archiver
+                  </button>
+                } @else {
+                  <span class="ink-muted">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <app-pagination
+        [page]="page()"
+        [totalPages]="totalPages()"
+        [pageSize]="taille()"
+        [tailles]="[10, 20, 50]"
+        [desactive]="enChargement()"
+        (pageChange)="changerPage($event)"
+        (pageSizeChange)="changerTaille($event)"
+      />
+    </div>
+  }
+} @else {
+  <!-- Vue archives : tickets livrés rangés hors de l'atelier -->
+  <div class="archive-bandeau">
+    <div>
+      <h2>Archives des commandes</h2>
+      <p>
+        Les tickets livrés archivés sont conservés ici. Ils n'apparaissent plus dans l'atelier
+        ni dans la liste active, mais restent consultables et restaurables.
+      </p>
+    </div>
+    <span class="archive-total">{{ commandes().length }} archivé(s)</span>
+  </div>
+
+  @if (enChargement()) {
+    <p class="empty">Chargement des archives…</p>
+  } @else if (commandes().length === 0) {
+    <p class="empty">Aucune commande archivée.</p>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticket</th>
+            <th>Client</th>
+            <th class="num">Total</th>
+            <th class="num">Payé</th>
+            <th>Livrée le</th>
+            <th>Archivée le</th>
+            <th class="num">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of commandes(); track c.idcommande) {
+            <tr class="row-click" (click)="ouvrirDetail(c)">
+              <td>{{ c.numeroTicket }}</td>
+              <td>
+                <strong>{{ c.client?.nom || '—' }}</strong>
+                <div class="archive-tel">{{ c.client?.telephone }}</div>
+              </td>
+              <td class="num">{{ c.montantTotal | cfa }}</td>
+              <td class="num">{{ c.montantPaye | cfa }}</td>
+              <td>{{ c.dateRetraitReelle | dateFr }}</td>
+              <td>{{ c.dateArchivage | dateFr }}</td>
+              <td class="num">
+                <div class="archive-actions">
+                  <button class="btn btn-sm" (click)="ouvrirDetail(c); $event.stopPropagation()">
+                    <app-icon nom="file-text" [taille]="13" />
+                    Ticket
+                  </button>
+                  @if (peutEcrire()) {
+                    <button
+                      class="btn btn-sm archiver-btn restaurer"
+                      (click)="restaurer(c); $event.stopPropagation()"
+                      [disabled]="enArchivage() === c.idcommande"
+                      title="Restaurer ce ticket dans l'atelier"
+                    >
+                      <app-icon nom="refresh" [taille]="13" />
+                      Restaurer
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <app-pagination
+        [page]="page()"
+        [totalPages]="totalPages()"
+        [pageSize]="taille()"
+        [tailles]="[10, 20, 50]"
+        [desactive]="enChargement()"
+        (pageChange)="changerPage($event)"
+        (pageSizeChange)="changerTaille($event)"
+      />
+    </div>
+  }
 }

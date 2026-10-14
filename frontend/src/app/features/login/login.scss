@@ -1,63 +1,237 @@
-.card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 28px;
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.login-card {
   width: 100%;
-  max-width: 360px;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  box-shadow:
+    0 20px 25px -5px rgb(15 23 42 / 0.1),
+    0 8px 10px -6px rgb(15 23 42 / 0.1);
+  overflow: hidden;
+}
+
+/* Bandeau bleu : la maquette y met une photo de comptoir, absente du depot.
+   On la remplace par un degrade de la couleur primaire. */
+.banner {
+  position: relative;
+  min-height: 128px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  justify-content: flex-end;
+  gap: 12px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 85% 15%, rgb(255 255 255 / 0.18), transparent 55%),
+    linear-gradient(135deg, var(--primaire) 0%, var(--primaire-hover) 100%);
+}
+
+.banner-badge {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.15);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.banner-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .banner-logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.2);
+    border: 1px solid rgb(255 255 255 / 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--police-titre);
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: rgb(255 255 255 / 0.82);
+  }
+}
+
+.form-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 
   h2 {
-    margin: 0 0 4px;
+    margin: 0;
     font-size: 20px;
     text-align: center;
   }
 }
 
-label {
+.form-sub {
+  margin: -10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--rayon-champ);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
-  color: #cbd5e1;
-}
 
-input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #475569;
-  background: #0f172a;
-  color: #f1f5f9;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #2563eb;
+  > span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
   }
 }
 
-button {
-  background: #2563eb;
-  color: #fff;
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--rayon-champ);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &:focus-within {
+    border-color: var(--primaire);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 18%, transparent);
+  }
+}
+
+.btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
   border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: var(--rayon-champ);
+  background: var(--primaire);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+
+  &:hover:not(:disabled) {
+    background: var(--primaire-hover);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
     cursor: not-allowed;
   }
 }
 
-.error {
-  background: #fee2e2;
-  color: #991b1b;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 13px;
+.rbac {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: var(--rayon-champ);
+  background: var(--primaire-soft);
+  border: 1px solid color-mix(in srgb, var(--primaire) 22%, transparent);
+  color: var(--ink);
+  font-size: 11.5px;
+  line-height: 1.45;
+
+  app-icon {
+    color: var(--primaire);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.login-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.login-suivi {
+  color: var(--primaire);
+  font-weight: 700;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

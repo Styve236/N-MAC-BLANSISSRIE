@@ -12,7 +12,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
   selector: 'app-caisse',
   imports: [FormsModule, CfaPipe, DateFrPipe, Icon, Pagination],
   templateUrl: './caisse.html',
-  styleUrl: '../_feature.scss',
+  styleUrls: ['../_feature.scss', './caisse.scss'],
 })
 export class Caisse {
   private readonly service = inject(CaisseService);
@@ -23,6 +23,8 @@ export class Caisse {
   readonly enChargement = signal(true);
   readonly erreur = signal('');
   readonly message = signal('');
+
+  readonly filtreMoyen = signal<string>('all');
 
   readonly histPage = signal(0);
   readonly histTaille = signal(10);
@@ -35,6 +37,39 @@ export class Caisse {
   readonly montantEnCaisse = signal<number | null>(null);
   readonly observations = signal('');
   readonly enCoursCloture = signal(false);
+
+  readonly lignesMoyens = computed(() => this.parMoyen(this.rapport()));
+
+  readonly totalEncaisse = computed(() => {
+    const r = this.rapport();
+    if (!r) return 0;
+    return r.totalLogiciel ?? this.lignesMoyens().reduce((s, m) => s + (m.montant ?? 0), 0);
+  });
+
+  readonly moyensDisponibles = computed(() => {
+    const vus = new Set<string>();
+    for (const m of this.lignesMoyens()) {
+      if (m.moyen) vus.add(m.moyen);
+    }
+    return [
+      { value: 'all', label: 'Tous' },
+      { value: 'ESPECES', label: 'Espèces' },
+      { value: 'MTN_MONEY', label: 'MTN MoMo' },
+      { value: 'ORANGE_MONEY', label: 'Orange Money' },
+    ].filter((o) => o.value === 'all' || vus.has(o.value));
+  });
+
+  readonly journal = computed(() => {
+    const f = this.filtreMoyen();
+    return this.lignesMoyens().filter((m) => f === 'all' || m.moyen === f);
+  });
+
+  readonly partLignes = computed(() =>
+    this.lignesMoyens().map((m) => ({
+      ...m,
+      part: this.totalEncaisse() ? Math.round(((m.montant ?? 0) / this.totalEncaisse()) * 100) : 0,
+    })),
+  );
 
   constructor() {
     this.chargerRapport();
@@ -87,9 +122,20 @@ export class Caisse {
     const map: Record<string, string> = {
       ESPECES: 'Espèces',
       ORANGE_MONEY: 'Orange Money',
-      MTN_MONEY: 'MTN Money',
+      MTN_MONEY: 'MTN MoMo',
     };
     return map[m] ?? m;
+  }
+
+  partDe(moyen: string): number {
+    const total = this.totalEncaisse();
+    if (!total) return 0;
+    const ligne = this.lignesMoyens().find((m) => m.moyen === moyen);
+    return Math.round(((ligne?.montant ?? 0) / total) * 100);
+  }
+
+  montantDe(moyen: string): number {
+    return this.lignesMoyens().find((m) => m.moyen === moyen)?.montant ?? 0;
   }
 
   cloturer(): void {

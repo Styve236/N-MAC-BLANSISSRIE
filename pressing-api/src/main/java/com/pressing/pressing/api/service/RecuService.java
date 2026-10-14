@@ -77,7 +77,7 @@ public class RecuService {
             Font norm10 = new Font(Font.HELVETICA, 10, Font.NORMAL);
             Font bold10 = new Font(Font.HELVETICA, 10, Font.BOLD);
 
-            Paragraph titre = new Paragraph("PRESSING CHERIF", bold14);
+            Paragraph titre = new Paragraph("N MAC BLANCHISSERIE", bold14);
             titre.setAlignment(Element.ALIGN_CENTER);
             doc.add(titre);
             Paragraph st = new Paragraph("REÇU DE COMMANDE", bold12);

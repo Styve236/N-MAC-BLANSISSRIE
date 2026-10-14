@@ -44,8 +44,9 @@ public class CommandeController {
             @RequestParam(required = false) StatutCommande statut,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false, defaultValue = "false") Boolean archivee,
             @PageableDefault(size = 20, sort = "dateCreation", direction = Sort.Direction.DESC) Pageable pageable) {
-        return commandeService.listerPaginer(clientId, statut, dateDebut, dateFin, pageable);
+        return commandeService.listerPaginer(clientId, statut, dateDebut, dateFin, archivee, pageable);
     }
 
     @GetMapping("/{id}")
@@ -78,6 +79,20 @@ public class CommandeController {
     public BigDecimal reste(@PathVariable Long id)
     {
         return commandeService.getResteAPayer(id);
+    }
+
+    // Archivage : retire une commande livree de l'ecran des commandes actives.
+    // IMPORTANT : ne supprime rien, la commande reste consultable dans les archives.
+    @PatchMapping("/{id}/archiver")
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+    public CommandeDetailDTO archiver(@PathVariable Long id) {
+        return commandeService.archiver(id);
+    }
+
+    @PatchMapping("/{id}/restaurer")
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONNISTE')")
+    public CommandeDetailDTO restaurer(@PathVariable Long id) {
+        return commandeService.restaurer(id);
     }
 
     @PostMapping("/{id}/pret")

@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
-                .addPathPatterns("/api/auth/login", "/api/auth/refresh", "/recu/**");
+                .addPathPatterns("/api/auth/login", "/api/auth/refresh", "/recu/**", "/api/suivi/**");
     }
 
     // Indispensable des que le frontend est servi sur une autre origine que l'API

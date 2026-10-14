@@ -10,7 +10,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { NotificationDTO } from '../../core/models/notification.model';
-import { ROLES } from '../../core/config/constants';
+import { ROLES, libelleRole } from '../../core/config/constants';
 
 interface MenuItem {
   label: string;
@@ -35,6 +35,7 @@ export class MainLayout {
 
   readonly nom = this.tenant.nom;
   readonly role = this.tenant.role;
+  readonly roleLibelle = computed(() => libelleRole(this.role()));
   readonly themeSombre = computed(() => this.themes.theme() === 'sombre');
 
   readonly notifs = signal<NotificationDTO[]>([]);
@@ -135,6 +136,7 @@ export class MainLayout {
   deconnexion(): void {
     this.auth.logout().subscribe({
       complete: () => this.router.navigate(['/login']),
+      error: () => this.router.navigate(['/login']),
     });
   }
 

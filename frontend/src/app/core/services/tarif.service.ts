@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config/constants';
 import { Tarif } from '../models/commande.model';
+import { Page } from '../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class TarifService {
@@ -12,10 +13,10 @@ export class TarifService {
     return this.http.post<Tarif>(`${API_URL}/api/tarifs`, tarif);
   }
 
-  lister(typeNettoyage?: string, page = 0, size = 20): Observable<any> {
+  lister(typeNettoyage?: string, page = 0, size = 20): Observable<Page<Tarif>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (typeNettoyage) params = params.set('typeNettoyage', typeNettoyage);
-    return this.http.get(`${API_URL}/api/tarifs`, { params });
+    return this.http.get<Page<Tarif>>(`${API_URL}/api/tarifs`, { params });
   }
 
   actifs(): Observable<Tarif[]> {

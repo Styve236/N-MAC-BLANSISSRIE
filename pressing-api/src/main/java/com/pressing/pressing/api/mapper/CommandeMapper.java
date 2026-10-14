@@ -48,6 +48,8 @@ public class CommandeMapper {
         dto.setDateLivraisonReelle(commande.getDateLivraisonReelle());
         dto.setStatutLivraison(commande.getStatutLivraison());
         dto.setMasqueeParLivreur(commande.isMasqueeParLivreur());
+        dto.setArchivee(commande.isArchivee());
+        dto.setDateArchivage(commande.getDateArchivage());
         dto.setClient(toClientResume(commande.getClient()));
 
         List<LigneCommandeDetailDTO> lignes = dto.getLignes();

@@ -26,6 +26,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private static final int MAX_TENTATIVES_LOGIN = 5;
     private static final int MAX_TENTATIVES_REFRESH = 10;
     private static final int MAX_VUES_RECU = 30;
+    private static final int MAX_VUES_SUIVI = 30;
     private static final long FENETRE_MILLIS = 15 * 60_000L;
 
     private final RateLimitService rateLimitService;
@@ -57,8 +58,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         int statut = response.getStatus();
         boolean succes = statut >= 200 && statut < 300;
 
-        // Un recu est une page client : un 404 est une tentative de devinette.
-        if (estCheminRecu(request) || !succes) {
+        // Un recu ou un suivi est une page client : un 404 est une tentative de devinette.
+        if (estCheminPublic(request) || !succes) {
             rateLimitService.echec(cle, FENETRE_MILLIS);
         } else {
             rateLimitService.reussite(cle);
@@ -66,10 +67,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private int maxTentatives(HttpServletRequest request) {
+        if (request.getRequestURI().startsWith("/api/suivi/")) {
+            return MAX_VUES_SUIVI;
+        }
         if (estCheminRecu(request)) {
             return MAX_VUES_RECU;
         }
         return request.getRequestURI().endsWith("/login") ? MAX_TENTATIVES_LOGIN : MAX_TENTATIVES_REFRESH;
+    }
+
+    private boolean estCheminPublic(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.startsWith("/recu/") || uri.startsWith("/api/suivi/");
     }
 
     private boolean estCheminRecu(HttpServletRequest request) {
@@ -86,6 +95,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             prefixe = "refresh";
         } else if (uri.startsWith("/recu/")) {
             prefixe = "recu";
+        } else if (uri.startsWith("/api/suivi/")) {
+            prefixe = "suivi";
         } else {
             return null;
         }

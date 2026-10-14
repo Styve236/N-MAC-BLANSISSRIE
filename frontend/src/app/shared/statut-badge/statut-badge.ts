@@ -37,17 +37,18 @@ const LIBELLES: Record<string, string> = {
   styles: `
     .pill {
       display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.4px;
+      white-space: nowrap;
     }
-    .pill-blue { background: color-mix(in srgb, var(--indigo) 12%, transparent); color: var(--indigo); }
-    .pill-amber { background: var(--amber-soft); color: var(--amber); }
-    .pill-green { background: var(--teal-soft); color: var(--teal); }
-    .pill-red { background: var(--coral-soft); color: var(--coral); }
+    .pill-blue { background: var(--primaire-soft); color: var(--primaire); }
+    .pill-amber { background: var(--avertissement-soft); color: var(--avertissement); }
+    .pill-green { background: var(--succes-soft); color: var(--succes); }
+    .pill-red { background: var(--danger-soft); color: var(--danger); }
   `,
 })
 export class StatutBadge {

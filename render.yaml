@@ -1,0 +1,40 @@
+# Blueprint Render — backend Spring Boot (déploiement Docker).
+# Base de données : PostgreSQL hébergé sur Neon (externe), renseignée via DB_URL.
+services:
+  - type: web
+    name: nmac-pressing-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./pressing-api
+    dockerfilePath: ./pressing-api/Dockerfile
+    autoDeploy: true
+    envVars:
+      # --- Neon (à renseigner dans le dashboard Render, "sync: false" = secret) ---
+      # jdbc:postgresql://<hote-neon>/<db>?sslmode=require
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # --- Sécurité ---
+      - key: JWT_SECRET
+        sync: false
+      - key: APP_SECURITY_MODE
+        value: production
+      # Première mise en service : passer à "true" pour créer les comptes de démo
+      # (admin@press.com / admin123), puis remettre à "false" et changer le mot de passe.
+      - key: APP_INITIALIZER_ACTIF
+        value: "false"
+      # --- CORS : remplace par l'URL de ton frontend Vercel ---
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+      # --- Render est derrière un reverse proxy de confiance ---
+      - key: FORWARD_HEADERS_STRATEGY
+        value: framework
+      - key: RATE_LIMIT_PROXY_CONFIANCE
+        value: "true"
+      # --- liens de reçus/SMS : URL publique du backend Render ---
+      - key: SMS_RECU_BASE_URL
+        sync: false

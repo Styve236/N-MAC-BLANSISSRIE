@@ -1,4 +1,23 @@
-<h1 class="page-title">Utilisateurs du personnel</h1>
+<header class="adm-entete">
+  <div class="adm-entete-gauche">
+    <div class="adm-couronne">
+      <app-icon nom="personnel" [taille]="24" />
+    </div>
+    <div>
+      <div class="adm-titre-ligne">
+        <h1 class="page-title">Console de direction &amp; administration</h1>
+        <span class="adm-super">Super admin</span>
+      </div>
+      <p class="adm-sous-titre">
+        Gestion des accès du personnel — réceptionnistes, agents de production et livreurs.
+      </p>
+    </div>
+  </div>
+  <button class="btn btn-primary" (click)="ouvrirNouveau()">
+    <app-icon nom="plus" [taille]="16" />
+    Nouvel utilisateur
+  </button>
+</header>
 
 @if (message()) {
   <div class="alert success">{{ message() }}</div>
@@ -7,28 +26,20 @@
   <div class="alert error">{{ erreur() }}</div>
 }
 
-<div class="toolbar">
-  <p style="margin:0;color:#64748b">Gestion des comptes du personnel (réceptionnistes, agents production, livreurs).</p>
-  <button class="btn btn-primary" (click)="ouvrirNouveau()">
-    <app-icon nom="plus" [taille]="16" />
-    Nouvel utilisateur
-  </button>
-</div>
-
 @if (showForm()) {
   <div class="form-card">
     <h3>Nouvel utilisateur</h3>
     <div class="form-grid">
       <div class="field">
-        <label>Nom <span style="color:#dc2626">*</span></label>
+        <label>Nom <span class="adm-requis">*</span></label>
         <input [(ngModel)]="form().nom" placeholder="Ex : Pierre Kamga" />
       </div>
       <div class="field">
-        <label>Téléphone <span style="color:#dc2626">*</span></label>
+        <label>Téléphone <span class="adm-requis">*</span></label>
         <input [(ngModel)]="form().tels" placeholder="Ex : 691234567" />
       </div>
       <div class="field">
-        <label>Email <span style="color:#dc2626">*</span></label>
+        <label>Email <span class="adm-requis">*</span></label>
         <input [(ngModel)]="form().email" type="email" placeholder="Ex : pierre@nmac.cm" />
       </div>
       <div class="field">
@@ -79,40 +90,84 @@
 } @else if (utilisateurs().length === 0) {
   <p class="empty">Aucun utilisateur.</p>
 } @else {
-  <div class="table-card">
+  <div class="adm-kpis">
+    <div class="adm-kpi">
+      <span class="adm-kpi-label">Effectif total</span>
+      <strong class="adm-kpi-valeur">{{ utilisateurs().length }}</strong>
+      <span class="adm-kpi-note">Comptes enregistrés</span>
+    </div>
+    <div class="adm-kpi">
+      <span class="adm-kpi-label">Comptes actifs</span>
+      <strong class="adm-kpi-valeur adm-vert">{{ nbActifs() }}</strong>
+      <span class="adm-kpi-note">En poste actuellement</span>
+    </div>
+    <div class="adm-kpi">
+      <span class="adm-kpi-label">Inactifs</span>
+      <strong class="adm-kpi-valeur adm-rose">{{ utilisateurs().length - nbActifs() }}</strong>
+      <span class="adm-kpi-note">Accès suspendus</span>
+    </div>
+    <div class="adm-kpi">
+      <span class="adm-kpi-label">Administrateurs</span>
+      <strong class="adm-kpi-valeur adm-violet">{{ compterRole('ADMIN') }}</strong>
+      <span class="adm-kpi-note">Accès direction</span>
+    </div>
+  </div>
+
+  <div class="adm-onglets">
+    @for (o of ongletsRole(); track o.value) {
+      <button class="adm-onglet" [class.actif]="filtreRole() === o.value" (click)="filtreRole.set(o.value)">
+        {{ o.label }} <span class="adm-onglet-count">{{ o.count }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="adm-table">
     <table>
       <thead>
         <tr>
-          <th>Nom</th>
-          <th>Téléphone</th>
-          <th>Email</th>
-          <th>Rôle</th>
+          <th>Collaborateur</th>
+          <th>Rôle système</th>
+          <th>Contact</th>
           <th>Statut</th>
-          <th>Actions</th>
+          <th class="adm-right">Actions</th>
         </tr>
       </thead>
       <tbody>
-        @for (u of utilisateurs(); track u.idusers) {
+        @for (u of utilisateursFiltres(); track u.idusers) {
           <tr>
-            <td>{{ u.nom }}</td>
-            <td>{{ u.tels }}</td>
-            <td>{{ u.email }}</td>
-            <td>{{ u.role }}</td>
             <td>
-              <span class="pill" [class]="u.actif ? 'pill-green' : 'pill-red'">{{ u.actif ? 'Actif' : 'Inactif' }}</span>
+              <div class="adm-collab">
+                <span class="adm-avatar" [class]="categorieRole(u.role)">{{ initiales(u.nom) }}</span>
+                <div>
+                  <strong>{{ u.nom }}</strong>
+                  <span>{{ u.email }}</span>
+                </div>
+              </div>
             </td>
-            <td class="actions">
-              <button class="btn btn-sm" (click)="ouvrirReset(u)">
-                <app-icon nom="phone" [taille]="14" />
-                Mot de passe
+            <td>
+              <span class="badge-role" [class]="categorieRole(u.role)">{{ libelleRole(u.role) }}</span>
+            </td>
+            <td class="adm-contact">{{ u.tels }}</td>
+            <td>
+              <span class="pill" [class]="u.actif ? 'pill-green' : 'pill-red'">
+                {{ u.actif ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="actions adm-right">
+              <button class="btn btn-sm" (click)="ouvrirReset(u)" title="Réinitialiser le mot de passe">
+                <app-icon nom="key" [taille]="14" />
               </button>
               <button
                 class="btn btn-sm"
-                [class.btn-danger]="u.actif"
+                [class.btn-danger]="u.actif || confirmation() === u.idusers"
                 (click)="basculerStatut(u)"
+                [title]="u.actif ? 'Désactiver' : 'Activer'"
               >
-                <app-icon [nom]="u.actif ? 'trash' : 'check'" [taille]="14" />
-                {{ u.actif ? 'Désactiver' : 'Activer' }}
+                @if (confirmation() === u.idusers) {
+                  <span>Confirmer ?</span>
+                } @else {
+                  <app-icon [nom]="u.actif ? 'trash' : 'check'" [taille]="14" />
+                }
               </button>
             </td>
           </tr>

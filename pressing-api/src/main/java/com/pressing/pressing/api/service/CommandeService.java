@@ -213,12 +213,37 @@ public class CommandeService
     }
 
     @Transactional(readOnly = true)
-    public Page<CommandeDetailDTO> listerPaginer(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
+    public Page<CommandeDetailDTO> listerPaginer(Long clientId, StatutCommande statut, LocalDate dateDebut, LocalDate dateFin, Boolean archivee, Pageable pageable) {
         // Tous les filtres sont appliques en base : plus de chargement de toutes les
         // commandes pour les trier en Java (les filtres partiels sont desormais geres aussi).
+        // Par defaut, seules les commandes actives sont retournees : les archivees
+        // disparaissent de l'ecran des commandes.
         return commandeRepository
-                .findAll(CommandeSpecification.filtre(clientId, statut, dateDebut, dateFin), pageable)
+                .findAll(CommandeSpecification.filtre(clientId, statut, dateDebut, dateFin, archivee), pageable)
                 .map(commandeMapper::toDTO);
+    }
+
+    /** Retire une commande livree de l'ecran des commandes actives (archivage reversible). */
+    @Transactional
+    public CommandeDetailDTO archiver(Long commandeId) {
+        Commande commande = consulterEntite(commandeId);
+        if (commande.getStatut() != StatutCommande.LIVRE) {
+            throw new IllegalArgumentException("Seule une commande livrée peut être archivée");
+        }
+        commande.setArchivee(true);
+        commande.setDateArchivage(LocalDateTime.now());
+        commandeRepository.save(commande);
+        return commandeMapper.toDTO(commande);
+    }
+
+    /** Replace une commande archivee dans le flux actif. */
+    @Transactional
+    public CommandeDetailDTO restaurer(Long commandeId) {
+        Commande commande = consulterEntite(commandeId);
+        commande.setArchivee(false);
+        commande.setDateArchivage(null);
+        commandeRepository.save(commande);
+        return commandeMapper.toDTO(commande);
     }
 
     @Transactional(readOnly = true)

@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config/constants';
 import { Client } from '../models/client.model';
+import { Page } from '../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class ClientService {
@@ -12,9 +13,9 @@ export class ClientService {
     return this.http.post<Client>(`${API_URL}/api/clients`, client);
   }
 
-  lister(page = 0, size = 20, sort = 'nom'): Observable<any> {
+  lister(page = 0, size = 20, sort = 'nom'): Observable<Page<Client>> {
     const params = new HttpParams().set('page', page).set('size', size).set('sort', sort);
-    return this.http.get(`${API_URL}/api/clients`, { params });
+    return this.http.get<Page<Client>>(`${API_URL}/api/clients`, { params });
   }
 
   obtenir(id: number): Observable<Client> {
@@ -31,8 +32,8 @@ export class ClientService {
     });
   }
 
-  rechercherParNom(nom: string, page = 0, size = 20): Observable<any> {
-    return this.http.get(`${API_URL}/api/clients/recherche/nom`, {
+  rechercherParNom(nom: string, page = 0, size = 20): Observable<Page<Client>> {
+    return this.http.get<Page<Client>>(`${API_URL}/api/clients/recherche/nom`, {
       params: new HttpParams().set('nom', nom).set('page', page).set('size', size),
     });
   }

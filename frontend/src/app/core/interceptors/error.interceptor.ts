@@ -1,8 +1,23 @@
 import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { throwError } from 'rxjs';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
+import { ToastService } from '../services/toast.service';
 
+/**
+ * Signalement global des pannes (reseau / serveur). Les erreurs metier 4xx
+ * restent affichees au cas par cas par chaque ecran, pour eviter les doublons.
+ */
 export const errorInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
-  return next(req);
+  const toasts = inject(ToastService);
+  return next(req).pipe(
+    catchError((err: HttpErrorResponse) => {
+      const estRouteAuth = req.url.includes('/api/auth/');
+      if (!estRouteAuth && (err.status === 0 || err.status >= 500)) {
+        toasts.erreur(extraireMessageErreur(err));
+      }
+      return throwError(() => err);
+    })
+  );
 };
 
 export function extraireMessageErreur(err: HttpErrorResponse): string {
@@ -19,6 +34,9 @@ export function extraireMessageErreur(err: HttpErrorResponse): string {
   if (err.status === 429) {
     return body?.message ?? 'Trop de tentatives, réessayez plus tard.';
   }
+  if (err.status >= 500) {
+    return body?.message ?? 'Le serveur a rencontré un problème. Réessayez dans un instant.';
+  }
   if (Array.isArray(body?.erreurs) && body!.erreurs!.length > 0) {
     return body!.erreurs!.join(' • ');
   }
@@ -27,6 +45,3 @@ export function extraireMessageErreur(err: HttpErrorResponse): string {
   }
   return `Erreur ${err.status} lors de la requête.`;
 }
-
-// Ré-exporté pour homogénéité de nommage (intercepteur vide, le 401 est géré par authInterceptor).
-export const apiErrorInterceptor: HttpInterceptorFn = errorInterceptor;

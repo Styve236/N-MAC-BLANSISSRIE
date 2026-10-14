@@ -1,4 +1,26 @@
-<h1 class="page-title">Caisse</h1>
+<header class="caisse-entete">
+  <div>
+    <span class="caisse-kicker">Comptabilité &amp; journal de caisse</span>
+    <h1 class="page-title">Recettes journalières</h1>
+    <p class="caisse-sous-titre">
+      Suivi des encaissements en temps réel et réconciliation Mobile Money &amp; espèces.
+    </p>
+  </div>
+  <div class="caisse-entete-actions">
+    <div class="field caisse-date">
+      <label>Date</label>
+      <input type="date" [(ngModel)]="date" (change)="chargerRapport()" />
+    </div>
+    <button class="btn" (click)="chargerRapport()">
+      <app-icon nom="search" [taille]="16" />
+      Voir
+    </button>
+    <button class="btn btn-primary" (click)="ticket()">
+      <app-icon nom="printer" [taille]="16" />
+      Feuille de caisse
+    </button>
+  </div>
+</header>
 
 @if (message()) {
   <div class="alert success">{{ message() }}</div>
@@ -7,74 +29,112 @@
   <div class="alert error">{{ erreur() }}</div>
 }
 
-<div class="toolbar">
-  <div class="filters">
-    <div class="field">
-      <label>Date</label>
-      <input type="date" [(ngModel)]="date" />
-    </div>
-    <button class="btn" (click)="chargerRapport()">
-      <app-icon nom="search" [taille]="16" />
-      Voir le rapport
-    </button>
-  </div>
-  <button class="btn" (click)="ticket()">
-    <app-icon nom="download" [taille]="16" />
-    Ticket du jour
-  </button>
-</div>
-
 @if (enChargement()) {
   <p>Chargement…</p>
 } @else if (rapport(); as r) {
-  <div class="detail-section">
-    <h2>Rapport du {{ r.date | dateFr:'date' }}</h2>
-    <div class="summary-bar">
-      <div class="summary-item">
-        <span>Total logiciel</span>
-        <strong>{{ r.totalLogiciel | cfa }}</strong>
+  <div class="caisse-kpis">
+    <div class="caisse-kpi">
+      <span class="caisse-kpi-label">Total encaissé</span>
+      <strong class="caisse-kpi-valeur">{{ totalEncaisse() | cfa }}</strong>
+      <span class="caisse-kpi-note">{{ r.nombrePaiements ?? 0 }} paiement(s) · tous modes</span>
+    </div>
+
+    <div class="caisse-kpi">
+      <div class="caisse-kpi-tete">
+        <span class="caisse-kpi-label caisse-jaune">MTN MoMo</span>
+        <app-icon nom="smartphone" [taille]="16" />
       </div>
-      <div class="summary-item">
-        <span>Total compté</span>
-        <strong>{{ r.totalCompte | cfa }}</strong>
+      <strong class="caisse-kpi-valeur">{{ montantDe('MTN_MONEY') | cfa }}</strong>
+      <span class="caisse-kpi-note">{{ partDe('MTN_MONEY') }}% des encaissements</span>
+    </div>
+
+    <div class="caisse-kpi">
+      <div class="caisse-kpi-tete">
+        <span class="caisse-kpi-label caisse-orange">Orange Money</span>
+        <app-icon nom="smartphone" [taille]="16" />
       </div>
-      <div class="summary-item" [style.border-color]="(r.ecart ?? 0) === 0 ? '#16a34a' : '#dc2626'">
-        <span>Écart</span>
-        <strong [style.color]="(r.ecart ?? 0) === 0 ? '#15803d' : '#b91c1c'">
-          {{ (r.ecart ?? 0) | cfa }}
-        </strong>
+      <strong class="caisse-kpi-valeur">{{ montantDe('ORANGE_MONEY') | cfa }}</strong>
+      <span class="caisse-kpi-note">{{ partDe('ORANGE_MONEY') }}% des encaissements</span>
+    </div>
+
+    <div class="caisse-kpi">
+      <div class="caisse-kpi-tete">
+        <span class="caisse-kpi-label caisse-vert">Espèces en caisse</span>
+        <app-icon nom="banknote" [taille]="16" />
       </div>
-      <div class="summary-item">
-        <span>Paiements</span>
-        <strong>{{ r.nombrePaiements }}</strong>
-      </div>
-      <div class="summary-item">
-        <span>Statut</span>
-        <strong>{{ r.cloturee ? 'Clôturée' : 'Ouverte' }}</strong>
-      </div>
+      <strong class="caisse-kpi-valeur">{{ montantDe('ESPECES') | cfa }}</strong>
+      @if (r.cloturee) {
+        <span class="caisse-kpi-note">
+          Écart de clôture :
+          <b [class.caisse-rouge]="(r.ecart ?? 0) !== 0">{{ (r.ecart ?? 0) | cfa }}</b>
+        </span>
+      } @else {
+        <span class="caisse-kpi-note">Caisse ouverte · non clôturée</span>
+      }
     </div>
   </div>
 
-  <div class="detail-section">
-    <h2>Détail par moyen de paiement</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Moyen</th>
-          <th class="num">Montant</th>
-          <th class="num">Nombre</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (m of parMoyen(r); track m.moyen) {
-          <tr>
-            <td>{{ libelleMoyen(m.moyen ?? '') }}</td>
-            <td class="num">{{ (m.montant ?? 0) | cfa }}</td>
-            <td class="num">{{ m.nombre ?? 0 }}</td>
-          </tr>
+  <div class="caisse-journal">
+    <div class="caisse-journal-tete">
+      <div>
+        <h2>Journal des encaissements</h2>
+        <p>Répartition des règlements par moyen de paiement</p>
+      </div>
+      <div class="caisse-filtres">
+        @for (f of moyensDisponibles(); track f.value) {
+          <button
+            class="caisse-filtre"
+            [class.actif]="filtreMoyen() === f.value"
+            (click)="filtreMoyen.set(f.value)"
+          >
+            {{ f.label }}
+          </button>
         }
-      </tbody>
-    </table>
+      </div>
+    </div>
+
+    @if (journal().length === 0) {
+      <p class="empty">Aucun encaissement pour cette sélection.</p>
+    } @else {
+      <div class="caisse-tableau">
+        <table>
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th class="num">Transactions</th>
+              <th class="num">Montant</th>
+              <th class="num">Part</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of journal(); track m.moyen) {
+              <tr>
+                <td>
+                  <span class="caisse-mode">
+                    <app-icon
+                      [nom]="m.moyen === 'ESPECES' ? 'banknote' : 'smartphone'"
+                      [taille]="15"
+                    />
+                    {{ libelleMoyen(m.moyen ?? '') }}
+                  </span>
+                </td>
+                <td class="num">{{ m.nombre ?? 0 }}</td>
+                <td class="num caisse-montant">{{ (m.montant ?? 0) | cfa }}</td>
+                <td class="num">{{ partDe(m.moyen ?? '') }}%</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td class="num">{{ r.nombrePaiements ?? 0 }}</td>
+              <td class="num caisse-montant">{{ totalEncaisse() | cfa }}</td>
+              <td class="num">100%</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
   </div>
 
   @if (!r.cloturee) {
@@ -92,7 +152,7 @@
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" (click)="cloturer()" [disabled]="enCoursCloture()">
-          <app-icon nom="check" [taille]="16" />
+          <app-icon nom="check-circle" [taille]="16" />
           {{ enCoursCloture() ? 'Clôture…' : 'Clôturer' }}
         </button>
       </div>

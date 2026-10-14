@@ -1,4 +1,7 @@
-export const API_URL = '';
+import { environment } from '../../../environments/environment';
+
+// URL de base de l'API. Vide en dev (proxy Angular), URL Render en production.
+export const API_URL = environment.apiUrl;
 
 export const ROLES = {
   ADMIN: 'ADMIN',
@@ -8,6 +11,48 @@ export const ROLES = {
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+/**
+ * Page d'accueil par defaut selon le role. Le dashboard etant reserve a
+ * l'administration et a la reception, un agent ou un livreur doit atterrir
+ * directement sur la page qu'il a le droit de voir.
+ */
+export function pageAccueil(role: Role | string | null | undefined): string {
+  switch (role) {
+    case ROLES.AGENT_PRODUCTION:
+      return '/commandes';
+    case ROLES.LIVREUR:
+      return '/livraisons';
+    default:
+      return '/dashboard';
+  }
+}
+
+const LIBELLES_ROLE: Record<string, string> = {
+  [ROLES.ADMIN]: 'Administrateur',
+  [ROLES.RECEPTIONNISTE]: 'Réceptionniste',
+  [ROLES.AGENT_PRODUCTION]: 'Agent de production',
+  [ROLES.LIVREUR]: 'Livreur',
+};
+
+/** Libelle lisible d'un role (fallback : la valeur brute). */
+export function libelleRole(role: string | null | undefined): string {
+  return (role && LIBELLES_ROLE[role]) || role || '';
+}
+
+/** Categorie de couleur associee au role (voir .badge-role). */
+export function categorieRole(role: string | null | undefined): string {
+  switch (role) {
+    case ROLES.ADMIN:
+      return 'violet';
+    case ROLES.AGENT_PRODUCTION:
+      return 'ambre';
+    case ROLES.LIVREUR:
+      return 'emeraude';
+    default:
+      return 'bleu';
+  }
+}
 
 export type StatutCommande = (typeof STATUT_COMMANDE)[keyof typeof STATUT_COMMANDE];
 export type StatutLivraison = (typeof STATUT_LIVRAISON)[keyof typeof STATUT_LIVRAISON];

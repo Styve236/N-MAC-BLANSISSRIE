@@ -1,21 +1,73 @@
-<form [formGroup]="form" class="card" (ngSubmit)="soumettre()">
-  <h2>Connexion</h2>
+<div class="login-page">
+  <form [formGroup]="form" class="login-card animate-in" (ngSubmit)="soumettre()">
+    <header class="banner">
+      <span class="banner-badge">DOUALA PK8 · CAMEROUN</span>
+      <div class="banner-brand">
+        <span class="banner-logo">N</span>
+        <div>
+          <h1>N MAC BLANCHISSERIE</h1>
+          <p>Soin &amp; Entretien Textile Professionnel</p>
+        </div>
+      </div>
+    </header>
 
-  @if (erreur()) {
-    <div class="error">{{ erreur() }}</div>
-  }
+    <div class="form-body">
+      <h2>Connexion Sécurisée</h2>
+      <p class="form-sub">Accédez à votre espace selon vos droits d'habilitation.</p>
 
-  <label>
-    Email
-    <input type="email" formControlName="email" placeholder="admin@press.com" autocomplete="email" />
-  </label>
+      @if (erreur()) {
+        <div class="error" role="alert">
+          <app-icon nom="alert-circle" [taille]="16" />
+          <span>{{ erreur() }}</span>
+        </div>
+      }
 
-  <label>
-    Mot de passe
-    <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
-  </label>
+      <label class="field">
+        <span>Email</span>
+        <span class="input-wrap">
+          <app-icon nom="mail" [taille]="16" />
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="votre.email@pressing.cm"
+            autocomplete="email"
+          />
+        </span>
+      </label>
 
-  <button type="submit" [disabled]="form.invalid || enChargement()">
-    {{ enChargement() ? 'Connexion…' : 'Se connecter' }}
-  </button>
-</form>
+      <label class="field">
+        <span>Mot de passe</span>
+        <span class="input-wrap">
+          <app-icon nom="key" [taille]="16" />
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="Votre mot de passe"
+            autocomplete="current-password"
+          />
+        </span>
+      </label>
+
+      <button type="submit" class="btn-submit" [disabled]="form.invalid || enChargement()">
+        <span>{{ enChargement() ? 'Connexion en cours…' : "Se Connecter à l'Interface" }}</span>
+        @if (!enChargement()) {
+          <app-icon nom="arrow-right" [taille]="16" />
+        }
+      </button>
+
+      <div class="rbac">
+        <app-icon nom="shield-check" [taille]="16" />
+        <p>
+          <strong>Contrôle d'accès strict (RBAC).</strong>
+          Les réceptionnistes, agents de production et coursiers ne peuvent pas modifier les prix
+          ni la configuration créés par l'Administrateur.
+        </p>
+      </div>
+    </div>
+
+    <footer class="login-footer">
+      <span>N MAC Blanchisserie · Douala PK8 · Tél : +237 696 16 50 61</span>
+      <a class="login-suivi" href="/suivi">Suivre mon linge</a>
+    </footer>
+  </form>
+</div>

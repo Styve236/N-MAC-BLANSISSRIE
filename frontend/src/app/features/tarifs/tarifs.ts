@@ -1,11 +1,10 @@
-    import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { Icon } from '../../shared/icon/icon';
-import { Pagination } from '../../shared/pagination/pagination';
-import { typeNettoyageOptions } from '../../shared/libelles';
+import { typeNettoyageOptions, LIBELLE_TYPE_NETTOYAGE } from '../../shared/libelles';
 import { TarifService } from '../../core/services/tarif.service';
 import { TenantService } from '../../core/services/tenant.service';
 import { Tarif } from '../../core/models/commande.model';
@@ -13,9 +12,9 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
 
 @Component({
   selector: 'app-tarifs',
-  imports: [FormsModule, CfaPipe, Icon, Pagination],
+  imports: [FormsModule, CfaPipe, Icon],
   templateUrl: './tarifs.html',
-  styleUrl: '../_feature.scss',
+  styleUrls: ['../_feature.scss', './tarifs.scss'],
 })
 export class Tarifs {
   private readonly service = inject(TarifService);
@@ -26,10 +25,8 @@ export class Tarifs {
 
   readonly tarifs = signal<Tarif[]>([]);
   readonly enChargement = signal(true);
-  readonly totalPages = signal(0);
-  readonly page = signal(0);
-  readonly taille = signal(20);
-  readonly filtreType = signal('');
+  readonly recherche = signal('');
+  readonly categorie = signal<string>('all');
   readonly erreur = signal('');
   readonly message = signal('');
 
@@ -37,36 +34,57 @@ export class Tarifs {
   readonly form = signal<Tarif>({});
   readonly enregistrement = signal(false);
 
+  readonly confirmation = signal<number | null>(null);
+  private arretConfirmation: number | undefined;
+
+  readonly categories = computed(() => {
+    const vues = new Set<string>();
+    for (const t of this.tarifs()) {
+      if (t.typeNettoyage) vues.add(t.typeNettoyage);
+    }
+    const options = this.typesNettoyage.filter((o) => vues.has(o.value));
+    return [{ value: 'all', label: 'Toutes les prestations' }, ...options];
+  });
+
+  readonly tarifsFiltres = computed(() => {
+    const q = this.recherche().trim().toLowerCase();
+    const cat = this.categorie();
+    return this.tarifs().filter((t) => {
+      const okCat = cat === 'all' || t.typeNettoyage === cat;
+      const texte = `${t.nom ?? ''} ${t.typevetement ?? ''}`.toLowerCase();
+      const okQ = !q || texte.includes(q);
+      return okCat && okQ;
+    });
+  });
+
+  readonly nbActifs = computed(() => this.tarifs().filter((t) => t.actif).length);
+
   constructor() {
     this.charger();
   }
 
   charger(): void {
     this.enChargement.set(true);
-    this.service.lister(this.filtreType() || undefined, this.page(), this.taille()).subscribe({
+    this.service.lister(undefined, 0, 200).subscribe({
       next: (p) => {
         this.tarifs.set(p.content ?? []);
-        this.totalPages.set(p.totalPages ?? 0);
         this.enChargement.set(false);
       },
       error: () => this.enChargement.set(false),
     });
   }
 
-  filtrer(): void {
-    this.page.set(0);
-    this.charger();
+  /** Un tarif facturé au poids : prix au kilo renseigné sans prix unitaire. */
+  estAuPoids(t: Tarif): boolean {
+    return (t.prixauklo ?? 0) > 0 && !(t.prixunitaire ?? 0);
   }
 
-  changerPage(p: number): void {
-    this.page.set(p);
-    this.charger();
+  prixTarif(t: Tarif): number | undefined {
+    return this.estAuPoids(t) ? t.prixauklo : (t.prixunitaire ?? t.prixauklo);
   }
 
-  changerTaille(t: number): void {
-    this.taille.set(t);
-    this.page.set(0);
-    this.charger();
+  libelleTypeNettoyage(v: string | undefined): string {
+    return v ? (LIBELLE_TYPE_NETTOYAGE as Record<string, string>)[v] ?? v : '';
   }
 
   ouvrirNouveau(): void {
@@ -108,6 +126,13 @@ export class Tarifs {
 
   basculerActif(t: Tarif): void {
     const id = t.idtarif!;
+
+    if (t.actif && this.confirmation() !== id) {
+      this.armConfirmation(id);
+      return;
+    }
+    this.confirmation.set(null);
+
     const appel: Observable<void> = t.actif
       ? this.service.supprimer(id)
       : this.service.activer(id).pipe(map(() => undefined));
@@ -120,5 +145,13 @@ export class Tarifs {
   annuler(): void {
     this.showForm.set(false);
     this.erreur.set('');
+  }
+
+  private armConfirmation(id: number): void {
+    if (this.arretConfirmation) {
+      window.clearTimeout(this.arretConfirmation);
+    }
+    this.confirmation.set(id);
+    this.arretConfirmation = window.setTimeout(() => this.confirmation.set(null), 3500);
   }
 }

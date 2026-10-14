@@ -67,11 +67,11 @@ import { Icon } from '../icon/icon';
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 32px;
-      height: 32px;
+      min-width: 34px;
+      height: 34px;
       padding: 0 8px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--rayon-nav);
       background: var(--panel);
       color: var(--ink);
       font-size: 13px;
@@ -79,16 +79,16 @@ import { Icon } from '../icon/icon';
       transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
     }
     .pg-btn:hover:not(:disabled) {
-      border-color: var(--indigo);
-      color: var(--indigo);
+      border-color: var(--primaire);
+      color: var(--primaire);
     }
     .pg-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
     .pg-btn.pg-actif {
-      background: var(--indigo);
-      border-color: var(--indigo);
+      background: var(--primaire);
+      border-color: var(--primaire);
       color: #fff;
       font-weight: 600;
     }

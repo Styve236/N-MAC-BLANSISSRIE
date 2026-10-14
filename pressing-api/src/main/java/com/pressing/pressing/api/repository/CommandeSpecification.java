@@ -20,8 +20,20 @@ public final class CommandeSpecification {
 
     public static Specification<Commande> filtre(Long clientId, StatutCommande statut,
             LocalDate dateDebut, LocalDate dateFin) {
+        return filtre(clientId, statut, dateDebut, dateFin, null);
+    }
+
+    /**
+     * @param archivee true = uniquement les commandes archivees, false = uniquement
+     *                 les actives, null = actives (defaut). L'archivage est un
+     *                 drapeau : une commande archivee n'est pas une commande supprimee.
+     */
+    public static Specification<Commande> filtre(Long clientId, StatutCommande statut,
+            LocalDate dateDebut, LocalDate dateFin, Boolean archivee) {
         return (racine, requete, cb) -> {
             List<Predicate> predicats = new ArrayList<>();
+
+            predicats.add(cb.equal(racine.get("archivee"), Boolean.TRUE.equals(archivee)));
 
             if (clientId != null) {
                 predicats.add(cb.equal(racine.get("client").get("idclient"), clientId));

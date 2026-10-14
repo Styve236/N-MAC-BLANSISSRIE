@@ -28,7 +28,7 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
   selector: 'app-detail-commande',
   imports: [FormsModule, CfaPipe, DateFrPipe, Icon, StatutBadge],
   templateUrl: './detail-commande.html',
-  styleUrl: '../_feature.scss',
+  styleUrls: ['../_feature.scss', './detail-commande.scss'],
 })
 export class DetailCommande implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
@@ -69,6 +69,9 @@ export class DetailCommande implements OnDestroy {
   readonly enCoursLivraison = signal(false);
 
   readonly commandes = Object.values(STATUT_COMMANDE) as StatutCommande[];
+
+  readonly recuOuvert = signal(false);
+  readonly codeBarres = [4, 2, 6, 1, 3, 5, 2, 4, 1, 6, 3, 2, 5, 1, 4, 2, 3, 6, 2, 1, 4];
 
   constructor() {
     this.charger();
@@ -342,6 +345,71 @@ export class DetailCommande implements OnDestroy {
       next: (blob) => telechargerBlob(blob, `recu-commande-${id}.pdf`),
       error: (err) => this.erreur.set(extraireMessageErreur(err)),
     });
+  }
+
+  ouvrirRecu(): void {
+    this.recuOuvert.set(true);
+  }
+
+  fermerRecu(): void {
+    this.recuOuvert.set(false);
+  }
+
+  imprimerRecu(): void {
+    window.print();
+  }
+
+  piecesTotal(): number {
+    return (this.commande()?.lignes ?? [])
+      .filter((l) => l.quantite)
+      .reduce((n, l) => n + (l.quantite ?? 0), 0);
+  }
+
+  poidsLignes(): number {
+    return (this.commande()?.lignes ?? [])
+      .filter((l) => l.poids)
+      .reduce((n, l) => n + (l.poids ?? 0), 0);
+  }
+
+  designationLigne(l: LigneCommandeLegere): string {
+    return l.tarif?.nom || l.tarif?.typevetement || l.description || 'Article';
+  }
+
+  quantiteLigne(l: LigneCommandeLegere): string {
+    if (l.poids) return `${l.poids} kg`;
+    if (l.quantite) return `${l.quantite}x`;
+    return '—';
+  }
+
+  resteRecu(): number {
+    const sp = this.statutPaiement();
+    if (sp?.resteAPayer != null) return sp.resteAPayer;
+    return Math.max(0, (this.commande()?.montantTotal ?? 0) - (this.commande()?.montantPaye ?? 0));
+  }
+
+  dernierMoyen(): string {
+    const paiements = this.statutPaiement()?.paiements ?? [];
+    const dernier = paiements[paiements.length - 1];
+    return dernier ? this.libelleMoyen(dernier.moyenPaiement ?? '') : '—';
+  }
+
+  partagerWhatsApp(): void {
+    const c = this.commande();
+    if (!c) return;
+    const fcfa = (n?: number) => `${(n ?? 0).toLocaleString('fr-FR')} FCFA`;
+    const prevoir = c.dateRecuperationPrevue
+      ? new Date(c.dateRecuperationPrevue).toLocaleDateString('fr-FR')
+      : '—';
+    const texte =
+      `*N MAC BLANCHISSERIE (DOUALA PK8) - TICKET ${c.numeroTicket}*\n` +
+      `Bonjour ${c.client?.nom ?? ''},\n` +
+      `Votre dépôt est bien enregistré à Douala PK8.\n` +
+      `*Date de retrait prévue :* ${prevoir}\n` +
+      `*Total :* ${fcfa(c.montantTotal)}\n` +
+      `*Reste à payer :* ${fcfa(this.resteRecu())}\n` +
+      `Présentez le ticket ${c.numeroTicket} pour le retrait.`;
+    const tel = (c.client?.telephone ?? '').replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(texte)}`, '_blank');
   }
 
   libelleStatut(s: string): string {

@@ -1,0 +1,593 @@
+/* Écran 2 — Atelier (kanban) & liste des commandes */
+
+.page-sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+/* Bascule Atelier / Liste */
+.vue-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--rayon-champ);
+  background: var(--bg);
+  border: 1px solid var(--line);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    &.actif {
+      background: var(--panel);
+      color: var(--primaire);
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    }
+  }
+}
+
+/* KPI atelier */
+.kanban-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.kanban-kpi {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  padding: 15px 16px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.kanban-kpi-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+
+  &.bleu {
+    color: var(--primaire);
+  }
+  &.vert {
+    color: var(--succes);
+  }
+  &.rose {
+    color: var(--danger);
+  }
+}
+
+.kanban-kpi-val {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--police-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+
+  small {
+    font-family: var(--police-corps);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+
+  &.bleu {
+    color: var(--primaire);
+  }
+  &.vert {
+    color: var(--succes);
+  }
+  &.rose {
+    color: var(--danger);
+  }
+}
+
+.kanban-kpi-sub {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+
+  &.vert {
+    color: var(--succes);
+  }
+  &.rose {
+    color: var(--danger);
+  }
+}
+
+/* Barre de filtres atelier */
+.kanban-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.kanban-search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 380px;
+
+  input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 13px;
+    background: var(--panel);
+    color: var(--ink);
+
+    &:focus {
+      outline: none;
+      border-color: var(--primaire);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 18%, transparent);
+    }
+  }
+}
+
+.kanban-search-ico {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-muted);
+  display: inline-flex;
+  pointer-events: none;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--bg);
+
+  button {
+    padding: 7px 13px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    &.actif {
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+    }
+
+    &.rose.actif {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+  }
+}
+
+/* Plateau kanban */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+
+  @media (max-width: 1180px) {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 8px;
+
+    .kanban-colonne {
+      flex: 0 0 260px;
+    }
+  }
+}
+
+.kanban-colonne {
+  background: color-mix(in srgb, var(--bg) 70%, var(--panel));
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  border-radius: var(--rayon-carte);
+  padding: 12px;
+  min-height: 460px;
+
+  &.ton-neutre {
+    border-top-color: #94a3b8;
+  }
+  &.ton-ambre {
+    border-top-color: var(--avertissement);
+  }
+  &.ton-bleu {
+    border-top-color: var(--primaire);
+  }
+  &.ton-vert {
+    border-top-color: var(--succes);
+  }
+  &.ton-sombre {
+    border-top-color: #475569;
+  }
+}
+
+.kanban-col-tete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+
+  h3 {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 10.5px;
+    color: var(--ink-muted);
+  }
+}
+
+.kanban-count {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-family: var(--police-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.kanban-col-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kanban-vide {
+  padding: 26px 8px;
+  text-align: center;
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+/* Carte ticket */
+.kanban-carte {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-champ);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: var(--primaire);
+    box-shadow: 0 4px 14px rgb(15 23 42 / 0.07);
+  }
+
+  &.en-retard {
+    border-color: var(--danger-line);
+    background: color-mix(in srgb, var(--danger-soft) 45%, var(--panel));
+    box-shadow: 0 0 0 1px var(--danger-line);
+  }
+}
+
+.kanban-carte-haut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kanban-ticket {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--police-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--primaire);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.kanban-urgent {
+  flex: 0 0 auto;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.kanban-resume {
+  flex: 0 0 auto;
+  font-family: var(--police-mono);
+  font-size: 10.5px;
+  color: var(--ink-muted);
+}
+
+.kanban-client {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 12.5px;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+
+  span {
+    font-family: var(--police-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+}
+
+.kanban-articles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.kanban-article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.kanban-article-nom {
+  font-size: 11px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kanban-photo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--primaire-soft);
+  color: var(--primaire);
+}
+
+.kanban-plus {
+  font-size: 10px;
+  color: var(--ink-muted);
+}
+
+.kanban-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 10.5px;
+}
+
+.kanban-etat {
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--primaire-soft);
+  color: var(--primaire);
+}
+
+.kanban-prevu {
+  font-family: var(--police-mono);
+  color: var(--ink-muted);
+}
+
+.kanban-fin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-muted);
+
+  span:last-child {
+    font-weight: 700;
+    color: var(--avertissement);
+  }
+
+  span.solde {
+    color: var(--succes);
+  }
+}
+
+.kanban-actions {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.kanban-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: var(--line);
+    color: var(--ink);
+  }
+
+  &.primaire {
+    background: var(--primaire);
+    border-color: var(--primaire);
+    color: #fff;
+
+    &:hover {
+      background: var(--primaire-hover);
+      border-color: var(--primaire-hover);
+      color: #fff;
+    }
+  }
+
+  &.archiver {
+    background: var(--violet-soft);
+    border-color: color-mix(in srgb, var(--violet) 30%, transparent);
+    color: var(--violet);
+
+    &:hover {
+      background: var(--violet);
+      border-color: var(--violet);
+      color: #fff;
+    }
+  }
+}
+
+/* Bouton d'archivage (liste & table d'archives) */
+.archiver-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--violet);
+  border-color: color-mix(in srgb, var(--violet) 30%, transparent);
+
+  &:hover {
+    background: var(--violet-soft);
+  }
+
+  &.restaurer {
+    color: var(--succes);
+    border-color: color-mix(in srgb, var(--succes) 30%, transparent);
+
+    &:hover {
+      background: var(--succes-soft);
+    }
+  }
+}
+
+.ink-muted {
+  color: var(--ink-muted);
+}
+
+/* Vue archives */
+.archive-bandeau {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: var(--rayon-carte);
+  background: var(--violet-soft);
+  border: 1px solid color-mix(in srgb, var(--violet) 22%, transparent);
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    color: var(--violet);
+  }
+
+  p {
+    margin: 0;
+    max-width: 620px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+}
+
+.archive-total {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid color-mix(in srgb, var(--violet) 25%, transparent);
+  font-family: var(--police-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--violet);
+}
+
+.archive-tel {
+  font-family: var(--police-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.archive-actions {
+  display: inline-flex;
+  gap: 6px;
+  justify-content: flex-end;
+}

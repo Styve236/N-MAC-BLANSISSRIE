@@ -1,193 +1,327 @@
-<h1 class="page-title">Nouvelle commande</h1>
+<!-- Bannière boutique -->
+<div class="pos-hero">
+  <img src="/images/hero-pressing.jpg" alt="Comptoir N MAC Blanchisserie Douala PK8" />
+  <div class="pos-hero-voile">
+    <span class="pos-hero-kicker">N MAC BLANCHISSERIE · DOUALA PK8</span>
+    <h1>Comptoir de Dépôt &amp; Enregistrement</h1>
+    <p>
+      Tarifs officiels fixés par l'administration. Soin expert des Bazin, Kabas,
+      costumes et linge au poids à Douala PK8.
+    </p>
+  </div>
+</div>
+
+<div class="pos-ribbon">
+  <span class="pos-ribbon-item">
+    <app-icon nom="shield-check" [taille]="16" />
+    Nettoyage écologique · Contrôle qualité avant cintre
+  </span>
+  <span class="pos-ribbon-item pos-ribbon-muted">Orange Money &amp; MTN MoMo acceptés</span>
+  <span class="pos-ribbon-item pos-ribbon-muted">Retrait Express 6h à 24h</span>
+</div>
 
 @if (erreur()) {
   <div class="alert error">{{ erreur() }}</div>
 }
 
-<!-- Client -->
-<div class="detail-section">
-  <h2>Client</h2>
+<div class="pos-grid">
+  <!-- Colonne gauche : client + articles -->
+  <div class="pos-col">
+    <!-- 01 Client -->
+    <section class="detail-section">
+      <header class="pos-head">
+        <span class="pos-num">01</span>
+        <h2>Identification du client</h2>
+      </header>
 
-  @if (clientSelectionne(); as c) {
-    <div class="summary-bar">
-      <div class="summary-item">
-        <strong>{{ c.nom }}</strong>
-        {{ c.telephone }} · {{ c.ville || '—' }} · {{ c.quartier || '—' }}
-      </div>
-      <button class="btn" (click)="changerClient()">
-        <app-icon nom="x" [taille]="16" />
-        Changer
-      </button>
-    </div>
-  } @else {
-    <div class="form-grid">
-      <div class="field">
-        <label>Recherche (téléphone ou nom)</label>
-        <input [(ngModel)]="recherchePhone" (keyup.enter)="chercherClient()" placeholder="Ex : 691234567" />
-      </div>
-      <div class="field" style="justify-content:flex-end">
-        <button class="btn" (click)="chercherClient()">
-          <app-icon nom="search" [taille]="16" />
-          Rechercher
-        </button>
-      </div>
-    </div>
-
-    @if (resultats().length > 0) {
-      <div class="result-list">
-        @for (c of resultats(); track c.id) {
-          <button class="result-item" (click)="choisirClient(c)">
+      @if (clientSelectionne(); as c) {
+        <div class="summary-bar">
+          <div class="summary-item">
             <strong>{{ c.nom }}</strong>
-            <span>{{ c.telephone }}</span>
+            {{ c.telephone }} · {{ c.ville || '—' }} · {{ c.quartier || '—' }}
+          </div>
+          <button class="btn" (click)="changerClient()">
+            <app-icon nom="x" [taille]="16" />
+            Changer
           </button>
-        }
-      </div>
-    }
-  }
-</div>
-
-<!-- Lignes -->
-<div class="detail-section">
-  <h2>Articles</h2>
-
-  @if (enChargementTarifs()) {
-    <p>Chargement des tarifs…</p>
-  } @else {
-    @for (ligne of lignes(); track $index; let i = $index) {
-      <div class="ligne">
-        <div class="form-grid">
-          <div class="field">
-            <label>Tarif</label>
-            <select [(ngModel)]="ligne.tarifId">
-              <option [ngValue]="null">— Choisir —</option>
-              @for (t of tarifs(); track t.idtarif) {
-                <option [ngValue]="t.idtarif">{{ libelleTarif(t) }}</option>
-              }
-            </select>
-          </div>
-          <div class="field">
-            <label>Facturation</label>
-            <select [(ngModel)]="ligne.auPoids">
-              <option [ngValue]="true">Au poids (kg)</option>
-              <option [ngValue]="false">À la pièce</option>
-            </select>
-          </div>
-          @if (ligne.auPoids) {
-            <div class="field">
-              <label>Poids (kg)</label>
-              <input type="number" min="0" step="0.1" [(ngModel)]="ligne.poids" />
-            </div>
-          } @else {
-            <div class="field">
-              <label>Quantité</label>
-              <input type="number" min="1" step="1" [(ngModel)]="ligne.quantite" />
-            </div>
-          }
-          <div class="field">
-            <label>Type de nettoyage</label>
-            <select [(ngModel)]="ligne.typeNettoyage">
-              @for (t of typesNettoyage; track t.value) {
-                <option [value]="t.value">{{ t.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="field">
-            <label>Description</label>
-            <input [(ngModel)]="ligne.description" placeholder="Ex : 3 boutons à recoudre" />
-          </div>
         </div>
-        <div class="ligne-photos">
-          @for (p of ligne.photos; track $index) {
-            <div class="photo-preview">
-              <img [src]="p.apercu" alt="Photo article" />
-              <button class="photo-retirer" type="button" (click)="retirerPhoto(i, $index)">
-                <app-icon nom="x" [taille]="12" />
+      } @else {
+        <div class="pos-search">
+          <span class="pos-search-icon"><app-icon nom="search" [taille]="16" /></span>
+          <input
+            [(ngModel)]="recherchePhone"
+            (keyup.enter)="chercherClient()"
+            placeholder="Rechercher par nom ou numéro (+237)…"
+          />
+          <button class="btn btn-primary" (click)="chercherClient()">Rechercher</button>
+        </div>
+
+        @if (resultats().length > 0) {
+          <div class="result-list">
+            @for (c of resultats(); track c.id) {
+              <button class="result-item" (click)="choisirClient(c)">
+                <strong>{{ c.nom }}</strong>
+                <span>{{ c.telephone }}</span>
+                <app-icon nom="user-check" [taille]="16" />
               </button>
-            </div>
-          }
-          <label class="btn btn-sm photo-ajouter">
-            <app-icon nom="camera" [taille]="14" />
-            Photo (max 10 Mo)
-            <input type="file" accept="image/*" capture="environment" multiple (change)="onPhotosSelectionnes(i, $event)" />
-          </label>
-        </div>
-        <div class="ligne-actions">
-          <div class="ligne-total">
-            Sous-total : <strong>{{ montantLigne(ligne) | cfa }}</strong>
+            }
           </div>
-          @if (lignes().length > 1) {
-            <button class="btn btn-sm btn-danger" (click)="retirerLigne(i)">
-              <app-icon nom="trash" [taille]="14" />
-              Retirer
+        }
+      }
+    </section>
+
+    <!-- 02 Articles -->
+    <section class="detail-section">
+      <header class="pos-head pos-head-between">
+        <div class="pos-head-titre">
+          <span class="pos-num">02</span>
+          <h2>Sélection des vêtements &amp; articles</h2>
+        </div>
+        <div class="pos-search pos-search-sm">
+          <span class="pos-search-icon"><app-icon nom="search" [taille]="14" /></span>
+          <input [(ngModel)]="rechercheTarif" placeholder="Filtrer un article…" />
+        </div>
+      </header>
+
+      @if (enChargementTarifs()) {
+        <p class="empty">Chargement des tarifs…</p>
+      } @else if (tarifs().length === 0) {
+        <p class="empty">Aucun tarif actif. Contactez l'administrateur.</p>
+      } @else {
+        <div class="pos-tabs">
+          @for (cat of categories(); track cat.value) {
+            <button
+              type="button"
+              class="pos-tab"
+              [class.actif]="categorie() === cat.value"
+              (click)="categorie.set(cat.value)"
+            >
+              @if (cat.value === 'LAUNDRY') {
+                <app-icon nom="scale" [taille]="14" />
+              }
+              {{ cat.label }}
             </button>
           }
         </div>
-      </div>
-    }
 
-    <button class="btn" (click)="ajouterLigne()">
-      <app-icon nom="plus" [taille]="16" />
-      Ajouter un article
-    </button>
-  }
-</div>
+        @if (tarifsFiltres().length === 0) {
+          <p class="empty">Aucun article ne correspond à ce filtre.</p>
+        } @else {
+          <div class="pos-catalogue">
+            @for (t of tarifsFiltres(); track t.idtarif) {
+              <div class="pos-carte" [class.au-panier]="quantitePanier(t) > 0">
+                <div class="pos-carte-corps">
+                  <span class="pos-carte-ico" [class.kilo]="estAuPoids(t)">
+                    <app-icon [nom]="estAuPoids(t) ? 'scale' : 'shirt'" [taille]="22" />
+                  </span>
+                  <div class="pos-carte-infos">
+                    <strong>{{ t.nom || t.typevetement }}</strong>
+                    @if (t.nom && t.typevetement) {
+                      <small>{{ t.typevetement }}</small>
+                    }
+                    <div class="pos-carte-prix">
+                      <span>{{ (estAuPoids(t) ? t.prixauklo : t.prixunitaire) | cfa }}{{ estAuPoids(t) ? ' / kg' : '' }}</span>
+                      <span class="pos-chip">{{ libelleTypeNettoyage(t.typeNettoyage) }}</span>
+                    </div>
+                  </div>
+                </div>
 
-<!-- Options -->
-<div class="detail-section">
-  <h2>Options</h2>
-  <div class="form-grid">
-    <div class="field">
-      <label>Date de retrait prévue</label>
-      <input type="date" [(ngModel)]="dateRetrait" />
-    </div>
-    <div class="field">
-      <label>Acompte (FCFA)</label>
-      <input type="number" min="0" [(ngModel)]="acompte" />
-    </div>
-    <div class="field">
-      <label>Moyen de paiement de l'acompte</label>
-      <select [(ngModel)]="moyenAcompte" [disabled]="!acompteValide()">
-        @for (m of moyensPaiement; track m.value) {
-          <option [value]="m.value">{{ m.label }}</option>
+                <div class="pos-carte-footer">
+                  @if (quantitePanier(t) > 0) {
+                    <div class="pos-stepper">
+                      <button type="button" (click)="decrementerLigneTarif(t.idtarif!)">
+                        <app-icon nom="minus" [taille]="14" />
+                      </button>
+                      <span class="pos-stepper-val">{{ quantitePanier(t) }}{{ estAuPoids(t) ? ' kg' : '' }}</span>
+                      <button type="button" class="primaire" (click)="ajouterAuPanier(t)">
+                        <app-icon nom="plus" [taille]="14" />
+                      </button>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn btn-sm btn-primary pos-ajouter" (click)="ajouterAuPanier(t)">
+                      <app-icon nom="plus" [taille]="14" />
+                      Ajouter au panier
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
         }
-      </select>
-    </div>
-    <div class="field">
-      <label>Message pour la production (optionnel)</label>
-      <textarea
-        rows="2"
-        [(ngModel)]="messageAgent"
-        placeholder="Ex : Client pressé, à traiter en priorité."
-      ></textarea>
-    </div>
+      }
+    </section>
   </div>
-</div>
 
-<!-- Récapitulatif -->
-<div class="detail-section">
-  <h2>Récapitulatif</h2>
-  <div class="summary-bar">
-    <div class="summary-item">
-      <strong>Montant total</strong>
-      <span>{{ montantTotal() | cfa }}</span>
+  <!-- Colonne droite : panier -->
+  <aside class="pos-col">
+    <div class="pos-panier">
+      <header class="pos-head pos-head-between pos-panier-head">
+        <div class="pos-head-titre">
+          <span class="pos-num">03</span>
+          <div>
+            <h2>Panier &amp; Récapitulatif</h2>
+            <small class="pos-panier-client">
+              Client : <strong>{{ clientSelectionne()?.nom || 'non sélectionné' }}</strong>
+            </small>
+          </div>
+        </div>
+        @if (lignes().length > 0) {
+          <button class="btn btn-sm btn-danger" (click)="viderPanier()">
+            <app-icon nom="trash" [taille]="14" />
+            Vider
+          </button>
+        }
+      </header>
+
+      @if (lignes().length === 0) {
+        <div class="pos-panier-vide">
+          <app-icon nom="shirt" [taille]="34" />
+          <p class="empty">Aucun article sélectionné.</p>
+          <p class="empty pos-petit">Cliquez sur les articles du catalogue pour les ajouter.</p>
+        </div>
+      } @else {
+        <div class="pos-panier-liste">
+          @for (ligne of lignes(); track $index; let i = $index) {
+            <div class="pos-ligne">
+              <div class="pos-ligne-tete">
+                <div class="pos-ligne-nom">
+                  <span class="pos-qte" [class.kilo]="ligne.auPoids">
+                    @if (ligne.auPoids) {
+                      <app-icon nom="scale" [taille]="12" />
+                    }
+                    {{ (ligne.auPoids ? ligne.poids : ligne.quantite) ?? 0 }}{{ ligne.auPoids ? ' kg' : 'x' }}
+                  </span>
+                  <strong>{{ nomLigne(ligne) }}</strong>
+                </div>
+                <div class="pos-ligne-total">
+                  <span>{{ montantLigne(ligne) | cfa }}</span>
+                  <button class="pos-icone-btn" type="button" (click)="retirerLigne(i)">
+                    <app-icon nom="trash" [taille]="14" />
+                  </button>
+                </div>
+              </div>
+
+              <div class="pos-ligne-reglage">
+                <span>{{ prixLigne(ligne) | cfa }}{{ ligne.auPoids ? ' / kg' : ' / unité' }}</span>
+                <div class="pos-stepper pos-stepper-sm">
+                  <button type="button" (click)="decrementer(i)">
+                    <app-icon nom="minus" [taille]="12" />
+                  </button>
+                  <span class="pos-stepper-val">
+                    {{ (ligne.auPoids ? ligne.poids : ligne.quantite) ?? 0 }}{{ ligne.auPoids ? ' kg' : ' pcs' }}
+                  </span>
+                  <button type="button" class="primaire" (click)="incrementer(i)">
+                    <app-icon nom="plus" [taille]="12" />
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-grid form-grid-2">
+                <div class="field">
+                  <label>Type de nettoyage</label>
+                  <select [(ngModel)]="ligne.typeNettoyage">
+                    @for (t of typesNettoyage; track t.value) {
+                      <option [value]="t.value">{{ t.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Facturation</label>
+                  <select
+                    [ngModel]="ligne.auPoids ? 'P' : 'U'"
+                    (ngModelChange)="basculerUnite(i)"
+                  >
+                    <option value="P">Au poids (kg)</option>
+                    <option value="U">À la pièce</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field pos-ligne-desc">
+                <label>Description</label>
+                <input [(ngModel)]="ligne.description" placeholder="Ex : 3 boutons à recoudre, tache revers droit…" />
+              </div>
+
+              <div class="ligne-photos">
+                @for (p of ligne.photos; track $index) {
+                  <div class="photo-preview">
+                    <img [src]="p.apercu" alt="Photo article" />
+                    <button class="photo-retirer" type="button" (click)="retirerPhoto(i, $index)">
+                      <app-icon nom="x" [taille]="12" />
+                    </button>
+                  </div>
+                }
+                <label class="btn btn-sm photo-ajouter">
+                  <app-icon nom="camera" [taille]="14" />
+                  Photo preuve
+                  <input type="file" accept="image/*" capture="environment" multiple (change)="onPhotosSelectionnes(i, $event)" />
+                </label>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Options dépôt -->
+        <div class="pos-options">
+          <div class="form-grid form-grid-2">
+            <div class="field">
+              <label>Date de retrait prévue</label>
+              <input type="date" [(ngModel)]="dateRetrait" />
+            </div>
+            <div class="field">
+              <label>Acompte (FCFA)</label>
+              <input type="number" min="0" [(ngModel)]="acompte" />
+            </div>
+            <div class="field">
+              <label>Moyen de paiement de l'acompte</label>
+              <select [(ngModel)]="moyenAcompte" [disabled]="!acompteValide()">
+                @for (m of moyensPaiement; track m.value) {
+                  <option [value]="m.value">{{ m.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Message production (optionnel)</label>
+              <input [(ngModel)]="messageAgent" placeholder="Ex : client pressé" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Totaux -->
+        <div class="pos-totaux">
+          <div class="pos-total-ligne">
+            <span>Pièces / poids</span>
+            <span>
+              {{ nbPieces() }} pcs
+              @if (nbKilos() > 0) {
+                · {{ nbKilos() }} kg
+              }
+            </span>
+          </div>
+          <div class="pos-total-ligne">
+            <span>Montant total</span>
+            <strong>{{ montantTotal() | cfa }}</strong>
+          </div>
+          @if (acompteValide()) {
+            <div class="pos-total-ligne pos-acompte">
+              <span>Acompte versé</span>
+              <span>- {{ acompte() | cfa }}</span>
+            </div>
+            <div class="pos-total-ligne pos-reste">
+              <span>Reste à payer</span>
+              <strong>{{ resteAPayer() | cfa }}</strong>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="pos-actions">
+        <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement() || lignes().length === 0">
+          <app-icon nom="check" [taille]="16" />
+          {{ enregistrement() ? 'Création…' : 'Valider le dépôt' }}
+        </button>
+        <button class="btn" (click)="annuler()">Annuler</button>
+      </div>
     </div>
-    @if (acompteValide()) {
-      <div class="summary-item">
-        <strong>Acompte versé</strong>
-        <span>{{ acompte() | cfa }}</span>
-      </div>
-      <div class="summary-item">
-        <strong>Reste à payer</strong>
-        <span>{{ resteAPayer() | cfa }}</span>
-      </div>
-    }
-  </div>
-</div>
-
-<div class="form-actions">
-  <button class="btn btn-primary" (click)="enregistrer()" [disabled]="enregistrement()">
-    <app-icon nom="check" [taille]="16" />
-    {{ enregistrement() ? 'Création…' : 'Créer la commande' }}
-  </button>
-  <button class="btn" (click)="annuler()">Annuler</button>
+  </aside>
 </div>

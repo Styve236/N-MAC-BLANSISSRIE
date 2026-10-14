@@ -26,6 +26,7 @@ export interface LigneCommandeLegere {
   description?: string;
   typeNettoyage?: TypeNettoyage;
   tarif: Tarif;
+  photos?: Photo[];
 }
 
 export interface LigneCommandeDTO {
@@ -78,6 +79,7 @@ export interface CommandeDTO {
   numeroTicket?: string;
   dateCreation?: string;
   dateRecuperationPrevue?: string;
+  dateRetraitReelle?: string;
   statut?: string;
   poidsTotal?: number;
   montantTotal?: number;
@@ -85,6 +87,21 @@ export interface CommandeDTO {
   remise?: number;
   resteAPayer?: number;
   payee?: boolean;
+  adresseLivraison?: string;
+  statutLivraison?: string;
+  masqueeParLivreur?: boolean;
+  archivee?: boolean;
+  dateArchivage?: string;
+  client?: {
+    idclient?: number;
+    nom: string;
+    telephone: string;
+    ville?: string;
+    quartier?: string;
+    points_fidelites?: number;
+  };
+  lignes?: LigneCommandeLegere[];
+  paiements?: PaiementResume[];
 }
 
 export interface StatutPaiementDTO {

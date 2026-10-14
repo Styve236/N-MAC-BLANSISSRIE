@@ -1,0 +1,322 @@
+/* Écran 3 — Reçu thermique 80mm (modale) */
+
+.recu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(15 23 42 / 0.6);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.recu-panneau {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgb(15 23 42 / 0.35);
+  animation: apparition 150ms ease-out;
+}
+
+.recu-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.recu-entete-titre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.recu-entete-ticket {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--primaire-soft);
+  color: var(--primaire);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--police-mono);
+}
+
+.recu-fermer {
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  padding: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+
+  &:hover {
+    background: var(--line);
+    color: var(--ink);
+  }
+}
+
+.recu-corps {
+  padding: 18px;
+  background: color-mix(in srgb, var(--bg) 70%, var(--panel));
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.recu-papier {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  color: #0f172a;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  font-family: var(--police-mono);
+  font-size: 11.5px;
+  line-height: 1.55;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+}
+
+.recu-marque {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--line);
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #0f172a;
+    font-family: var(--police-titre);
+  }
+
+  p {
+    margin: 1px 0;
+    font-size: 9.5px;
+    color: #64748b;
+  }
+}
+
+.recu-coupe {
+  padding: 11px 0;
+  border-bottom: 1px dashed var(--line);
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.recu-centre {
+  text-align: center;
+}
+
+.recu-ticket-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.recu-ticket-num {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--primaire);
+  margin: 2px 0 6px;
+  word-break: break-all;
+}
+
+.recu-codebarres {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 30px;
+  padding: 4px 8px;
+  margin: 0 auto;
+  max-width: 220px;
+  background: var(--bg);
+  border-radius: 5px;
+
+  span {
+    display: block;
+    height: 100%;
+    background: #334155;
+  }
+}
+
+.recu-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  span:first-child {
+    color: #64748b;
+  }
+
+  strong {
+    color: #0f172a;
+  }
+}
+
+.recu-ambre {
+  margin-top: 3px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: var(--avertissement-soft);
+  color: #92400e;
+  font-weight: 600;
+
+  span:first-child {
+    color: #92400e;
+  }
+}
+
+.recu-table-entete {
+  display: grid;
+  grid-template-columns: 42px 1fr 72px;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recu-right {
+  text-align: right;
+}
+
+.recu-article {
+  display: grid;
+  grid-template-columns: 42px 1fr 72px;
+  gap: 4px;
+  padding: 3px 0;
+}
+
+.recu-article-qte {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.recu-article-nom {
+  color: #334155;
+
+  em {
+    display: block;
+    font-style: normal;
+    font-size: 9.5px;
+    color: var(--primaire);
+  }
+}
+
+.recu-article-montant {
+  text-align: right;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.recu-article-note {
+  grid-column: 2 / 4;
+  font-size: 9.5px;
+  color: #92400e;
+  padding-left: 4px;
+}
+
+.recu-vert {
+  color: var(--succes);
+
+  span:first-child {
+    color: var(--succes);
+  }
+}
+
+.recu-rouge {
+  color: var(--danger);
+
+  span:first-child {
+    color: var(--danger);
+  }
+}
+
+.recu-total {
+  margin-top: 5px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+  font-size: 13px;
+
+  strong {
+    color: inherit;
+    font-size: 14px;
+  }
+}
+
+.recu-conditions {
+  padding-top: 11px;
+  font-size: 9px;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+
+  p {
+    margin: 2px 0;
+  }
+}
+
+.recu-conditions-titre {
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.recu-conditions-pied {
+  margin-top: 5px;
+  font-style: italic;
+  color: #475569;
+}
+
+.recu-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.recu-actions-gauche {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}

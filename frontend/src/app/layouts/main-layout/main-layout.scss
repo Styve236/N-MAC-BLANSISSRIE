@@ -22,8 +22,8 @@
 .brand-logo {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: var(--teal);
+  border-radius: 12px;
+  background: var(--primaire);
   color: #fff;
   display: flex;
   align-items: center;
@@ -245,7 +245,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--teal);
+  background: var(--primaire);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,4 +287,102 @@
   min-height: 100vh;
   background: var(--bg);
   transition: background 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile / tablette : la sidebar fixe de 260px etait inutilisable.
+   Sous 900px elle devient une barre horizontale en haut, et la navigation
+   une rangee de pastilles scrollable horizontalement.
+   -------------------------------------------------------------------------- */
+@media (max-width: 899px) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .brand {
+    padding: 4px 8px;
+    border-bottom: none;
+    flex-shrink: 0;
+  }
+
+  .brand-text span {
+    display: none;
+  }
+
+  .nav {
+    order: 3;
+    flex: 1 1 100%;
+    flex-direction: row;
+    padding: 2px;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .nav-item {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: var(--rayon-nav);
+    white-space: nowrap;
+  }
+
+  .nav-icon {
+    width: auto;
+  }
+
+  .footer {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border-top: none;
+  }
+
+  .bell,
+  .theme-btn {
+    width: auto;
+    padding: 8px 10px;
+  }
+
+  .theme-btn span,
+  .bell span.label {
+    display: none;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .notif-panel {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: auto;
+    top: 64px;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 12px;
+  }
 }

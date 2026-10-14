@@ -97,7 +97,7 @@ public class RecuPageController {
                 + "</style></head><body>"
                 + "<div class=\"feuille\">"
                 + "<button class=\"btn-print\" onclick=\"window.print()\">Imprimer ce reçu</button>"
-                + "<div class=\"entete\"><div class=\"titre\">Pressing</div><div class=\"ticket\">N° <b>" + esc(recu.getNumeroTicket()) + "</b><br>Statut : " + esc(recu.getStatut()) + "</div></div>"
+                + "<div class=\"entete\"><div class=\"titre\">N MAC Blanchisserie</div><div class=\"ticket\">N° <b>" + esc(recu.getNumeroTicket()) + "</b><br>Statut : " + esc(recu.getStatut()) + "</div></div>"
                 + "<div class=\"infos\">"
                 + "<strong>Client :</strong> " + esc(recu.getNomClient()) + "<br>"
                 + "<strong>Téléphone :</strong> " + esc(recu.getTelephoneClient()) + "<br>"

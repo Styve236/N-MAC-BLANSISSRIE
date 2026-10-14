@@ -1,0 +1,225 @@
+/* Écran 5 — Journal de caisse */
+
+.caisse-entete {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.caisse-kicker {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primaire);
+  background: var(--primaire-soft);
+  border: 1px solid color-mix(in srgb, var(--primaire) 18%, transparent);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.caisse-sous-titre {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.caisse-entete-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.caisse-date {
+  min-width: 150px;
+}
+
+.caisse-kpis {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.caisse-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  padding: 18px;
+}
+
+.caisse-kpi-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink-muted);
+}
+
+.caisse-kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.caisse-kpi-valeur {
+  font-family: var(--police-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primaire);
+}
+
+.caisse-kpi-note {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.caisse-jaune {
+  color: #a16207;
+}
+.caisse-orange {
+  color: #c2410c;
+}
+.caisse-vert {
+  color: #047857;
+}
+.caisse-rouge {
+  color: var(--danger);
+}
+
+.caisse-journal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--rayon-carte);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.caisse-journal-tete {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
+  p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+}
+
+.caisse-filtres {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--line) 55%, var(--bg));
+  border-radius: var(--rayon-champ);
+}
+
+.caisse-filtre {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: calc(var(--rayon-champ) - 4px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+  }
+
+  &.actif {
+    background: var(--panel);
+    color: var(--primaire);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+  }
+}
+
+.caisse-tableau {
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    background: var(--bg);
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  tfoot td {
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--bg);
+  }
+
+  .num {
+    text-align: right;
+  }
+}
+
+.caisse-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.caisse-montant {
+  font-family: var(--police-mono);
+  font-weight: 700;
+  color: var(--ink);
+}

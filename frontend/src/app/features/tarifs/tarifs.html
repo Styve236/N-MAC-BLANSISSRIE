@@ -1,4 +1,30 @@
-<h1 class="page-title">Tarifs</h1>
+<header class="cat-entete">
+  <div class="cat-entete-titre">
+    <span class="cat-kicker">Transparence &amp; tarifs officiels</span>
+    <h1 class="page-title">Grille tarifaire &amp; prestations de soin</h1>
+    <p class="cat-sous-titre">
+      Prix tout compris en FCFA incluant détachage, lavage spécialisé, amidonnage
+      personnalisé et emballage protecteur.
+    </p>
+  </div>
+  <div class="cat-actions">
+    <div class="cat-recherche">
+      <app-icon nom="search" [taille]="16" />
+      <input
+        type="text"
+        placeholder="Rechercher une pièce…"
+        [ngModel]="recherche()"
+        (ngModelChange)="recherche.set($event)"
+      />
+    </div>
+    @if (estAdmin()) {
+      <button class="btn btn-primary" (click)="ouvrirNouveau()">
+        <app-icon nom="plus" [taille]="16" />
+        Nouveau tarif
+      </button>
+    }
+  </div>
+</header>
 
 @if (message()) {
   <div class="alert success">{{ message() }}</div>
@@ -6,27 +32,6 @@
 @if (erreur()) {
   <div class="alert error">{{ erreur() }}</div>
 }
-
-<div class="toolbar">
-  <div class="filters">
-    <div class="field">
-      <label>Type de nettoyage</label>
-      <select [(ngModel)]="filtreType" (change)="filtrer()">
-        <option value="">Tous</option>
-        @for (t of typesNettoyage; track t.value) {
-          <option [value]="t.value">{{ t.label }}</option>
-        }
-      </select>
-    </div>
-  </div>
-
-  @if (estAdmin()) {
-    <button class="btn btn-primary" (click)="ouvrirNouveau()">
-      <app-icon nom="plus" [taille]="16" />
-      Nouveau tarif
-    </button>
-  }
-</div>
 
 @if (showForm()) {
   <div class="form-card">
@@ -57,7 +62,7 @@
         <input type="number" min="0" [(ngModel)]="form().prixunitaire" />
       </div>
       <div class="field">
-        <label>
+        <label class="cat-check">
           <input type="checkbox" [(ngModel)]="form().actif" />
           Actif
         </label>
@@ -76,65 +81,113 @@
   </div>
 }
 
+<div class="cat-onglets">
+  @for (c of categories(); track c.value) {
+    <button
+      class="cat-onglet"
+      [class.actif]="categorie() === c.value"
+      (click)="categorie.set(c.value)"
+    >
+      @if (c.value === 'LAUNDRY') {
+        <app-icon nom="scale" [taille]="14" />
+      }
+      <span>{{ c.label }}</span>
+    </button>
+  }
+</div>
+
 @if (enChargement()) {
   <p>Chargement…</p>
-} @else if (tarifs().length === 0) {
-  <p class="empty">Aucun tarif. Ajoutez votre première grille tarifaire.</p>
+} @else if (tarifsFiltres().length === 0) {
+  <p class="empty">Aucun tarif ne correspond à votre recherche.</p>
 } @else {
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Nom</th>
-          <th>Type</th>
-          <th>Nettoyage</th>
-          <th class="num">Au kg</th>
-          <th class="num">Unitaire</th>
-          <th>Actif</th>
-          @if (estAdmin()) {
-            <th></th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (t of tarifs(); track t.idtarif) {
-          <tr>
-            <td>{{ t.nom || '—' }}</td>
-            <td>{{ t.typevetement || '—' }}</td>
-            <td>{{ t.typeNettoyage || '—' }}</td>
-            <td class="num">{{ t.prixauklo ? (t.prixauklo | cfa) : '—' }}</td>
-            <td class="num">{{ t.prixunitaire ? (t.prixunitaire | cfa) : '—' }}</td>
-            <td>
-              <span class="pill" [class]="t.actif ? 'pill-green' : 'pill-red'">{{ t.actif ? 'Actif' : 'Inactif' }}</span>
-            </td>
-            @if (estAdmin()) {
-              <td class="actions">
-                <button class="btn btn-sm" (click)="ouvrirEdition(t)" title="Modifier">
-                  <app-icon nom="edit" [taille]="14" />
-                </button>
-                <button
-                  class="btn btn-sm"
-                  [class.btn-danger]="t.actif"
-                  (click)="basculerActif(t)"
-                  [title]="t.actif ? 'Désactiver' : 'Activer'"
-                >
-                  <app-icon [nom]="t.actif ? 'trash' : 'check'" [taille]="14" />
-                </button>
-              </td>
-            }
-          </tr>
-        }
-      </tbody>
-    </table>
+  <div class="cat-grille">
+    @for (t of tarifsFiltres(); track t.idtarif) {
+      <article class="cat-carte" [class.inactif]="!t.actif">
+        <div class="cat-carte-bandeau">
+          <div class="cat-carte-icone">
+            <app-icon [nom]="estAuPoids(t) ? 'scale' : 'shirt'" [taille]="22" />
+          </div>
+          <div class="cat-carte-prix">
+            <span class="cat-carte-prix-label">
+              {{ estAuPoids(t) ? 'Tarif au kilogramme' : 'Tarif comptoir' }}
+            </span>
+            <span class="cat-carte-prix-valeur">
+              {{ prixTarif(t) | cfa }}{{ estAuPoids(t) ? ' / kg' : '' }}
+            </span>
+          </div>
+        </div>
 
-    <app-pagination
-      [page]="page()"
-      [totalPages]="totalPages()"
-      [pageSize]="taille()"
-      [tailles]="[10, 20, 50]"
-      [desactive]="enChargement()"
-      (pageChange)="changerPage($event)"
-      (pageSizeChange)="changerTaille($event)"
-    />
+        <div class="cat-carte-corps">
+          <div class="cat-carte-ligne">
+            <h3>{{ t.nom || t.typevetement || 'Sans nom' }}</h3>
+            @if (!t.actif) {
+              <span class="cat-pastille">Inactif</span>
+            }
+          </div>
+          <p class="cat-carte-desc">
+            {{ t.typevetement || 'Pièce' }} · {{ libelleTypeNettoyage(t.typeNettoyage) }}
+          </p>
+          <div class="cat-carte-meta">
+            @if (t.prixunitaire && t.prixauklo) {
+              <span>{{ t.prixunitaire | cfa }} / pièce</span>
+            }
+            @if (t.prixauklo) {
+              <span>{{ t.prixauklo | cfa }} / kg</span>
+            }
+          </div>
+        </div>
+
+        @if (estAdmin()) {
+          <div class="cat-carte-actions">
+            <button class="btn btn-sm" (click)="ouvrirEdition(t)" title="Modifier">
+              <app-icon nom="edit" [taille]="14" />
+            </button>
+            <button
+              class="btn btn-sm"
+              [class.btn-danger]="t.actif || confirmation() === t.idtarif"
+              (click)="basculerActif(t)"
+              [title]="t.actif ? 'Désactiver' : 'Activer'"
+            >
+              @if (confirmation() === t.idtarif) {
+                <span>Confirmer ?</span>
+              } @else {
+                <app-icon [nom]="t.actif ? 'trash' : 'check'" [taille]="14" />
+              }
+            </button>
+          </div>
+        }
+      </article>
+    }
   </div>
 }
+
+<section class="cat-conseils">
+  <h2>
+    <app-icon nom="sparkles" [taille]="20" />
+    Nos conseils de soin textile pour le climat équatorial
+  </h2>
+  <div class="cat-conseils-grille">
+    <div class="cat-conseil">
+      <h3>Le Bazin riche &amp; l'amidonnage</h3>
+      <p>
+        Le Bazin réclame un dégraissage à froid et un pressage au fer lourd avec
+        amidon spécifique pour préserver la brillance originelle de la teinture.
+      </p>
+    </div>
+    <div class="cat-conseil">
+      <h3>Dentelles &amp; Kabas Ngondo</h3>
+      <p>
+        Les broderies fines blanches jaunissent vite avec l'humidité. Nous utilisons
+        un blanchisseur doux à l'oxygène actif sans chlore corrosif.
+      </p>
+    </div>
+    <div class="cat-conseil">
+      <h3>Costumes en laine &amp; solvants éco</h3>
+      <p>
+        Le nettoyage à sec hydrocarbure écologique nettoie la fibre en profondeur
+        sans assécher la laine peignée ni marquer les coudes.
+      </p>
+    </div>
+  </div>
+</section>

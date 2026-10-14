@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Icon } from '../../shared/icon/icon';
-import { ROLES } from '../../core/config/constants';
+import { ROLES, libelleRole, categorieRole } from '../../core/config/constants';
 import { UserService } from '../../core/services/user.service';
+import { AuthService } from '../../core/services/auth.service';
 import { UserDTO, UserRequestDTO } from '../../core/models/users.model';
 import { extraireMessageErreur } from '../../core/interceptors/error.interceptor';
 
@@ -10,10 +11,37 @@ import { extraireMessageErreur } from '../../core/interceptors/error.interceptor
   selector: 'app-users',
   imports: [FormsModule, Icon],
   templateUrl: './users.html',
-  styleUrl: '../_feature.scss',
+  styleUrls: ['../_feature.scss', './users.scss'],
 })
 export class Users {
   private readonly service = inject(UserService);
+  private readonly auth = inject(AuthService);
+
+  protected readonly libelleRole = libelleRole;
+  protected readonly categorieRole = categorieRole;
+
+  readonly emailCourant = computed(() => this.auth.user()?.email ?? '');
+
+  readonly filtreRole = signal<string>('all');
+
+  readonly ongletsRole = computed(() => [
+    { value: 'all', label: 'Tous', count: this.utilisateurs().length },
+    { value: ROLES.ADMIN, label: 'Administrateurs', count: this.compterRole(ROLES.ADMIN) },
+    { value: ROLES.RECEPTIONNISTE, label: 'Réception', count: this.compterRole(ROLES.RECEPTIONNISTE) },
+    { value: ROLES.AGENT_PRODUCTION, label: 'Production', count: this.compterRole(ROLES.AGENT_PRODUCTION) },
+    { value: ROLES.LIVREUR, label: 'Livreurs', count: this.compterRole(ROLES.LIVREUR) },
+  ]);
+
+  readonly utilisateursFiltres = computed(() => {
+    const f = this.filtreRole();
+    return f === 'all' ? this.utilisateurs() : this.utilisateurs().filter((u) => u.role === f);
+  });
+
+  readonly nbActifs = computed(() => this.utilisateurs().filter((u) => u.actif).length);
+
+  /** Id de l'utilisateur dont la desactivation attend un second clic de confirmation. */
+  readonly confirmation = signal<number | null>(null);
+  private arretConfirmation: number | undefined;
 
   readonly utilisateurs = signal<UserDTO[]>([]);
   readonly enChargement = signal(true);
@@ -36,6 +64,19 @@ export class Users {
 
   constructor() {
     this.charger();
+  }
+
+  compterRole(role: string): number {
+    return this.utilisateurs().filter((u) => u.role === role).length;
+  }
+
+  initiales(nom: string): string {
+    return (nom || '?')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join('');
   }
 
   charger(): void {
@@ -91,6 +132,22 @@ export class Users {
 
   basculerStatut(u: UserDTO): void {
     if (!u.idusers) return;
+
+    // Desactivation : ne jamais se desactiver soi-meme, et exiger un 2e clic.
+    if (u.actif && u.email === this.emailCourant()) {
+      this.erreur.set('Vous ne pouvez pas désactiver votre propre compte.');
+      return;
+    }
+    if (u.actif && this.confirmation() !== u.idusers) {
+      if (this.arretConfirmation) {
+        window.clearTimeout(this.arretConfirmation);
+      }
+      this.confirmation.set(u.idusers);
+      this.arretConfirmation = window.setTimeout(() => this.confirmation.set(null), 3500);
+      return;
+    }
+    this.confirmation.set(null);
+
     this.service.changerStatut(u.idusers, !u.actif).subscribe({
       next: () => {
         this.message.set(`${u.nom} est maintenant ${u.actif ? 'désactivé' : 'activé'}.`);

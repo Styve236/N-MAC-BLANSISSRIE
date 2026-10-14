@@ -4,7 +4,6 @@ import { PercentPipe } from '@angular/common';
 import { CfaPipe } from '../../shared/pipes/cfa.pipe';
 import { DateFrPipe } from '../../shared/pipes/date.fr.pipe';
 import { Icon } from '../../shared/icon/icon';
-import { Pagination } from '../../shared/pagination/pagination';
 import { LIBELLE_TYPE_NETTOYAGE, LIBELLE_STATUT_COMMANDE, LIBELLE_MOYEN_PAIEMENT } from '../../shared/libelles';
 import { StatistiquesService } from '../../core/services/statistiques.service';
 import { ExportService, telechargerBlob } from '../../core/services/export.service';
@@ -63,7 +62,7 @@ interface LigneTop {
 
 @Component({
   selector: 'app-rapports',
-  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, PercentPipe, Pagination],
+  imports: [FormsModule, CfaPipe, DateFrPipe, Icon, PercentPipe],
   templateUrl: './rapports.html',
   styleUrl: '../_feature.scss',
 })

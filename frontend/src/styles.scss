@@ -1,66 +1,175 @@
 :root {
   color-scheme: light;
 
-  --bg: #f5f8f9;
+  /* ---------------------------------------------------------------
+     Charte N MAC Blanchisserie (Douala PK8)
+     Primaires, fonds, bordures et texte
+     --------------------------------------------------------------- */
+  --primaire: #185fa5;
+  --primaire-hover: #12477d;
+  --primaire-soft: #ebf3fb;
+
+  --bg: #f8fafc;
   --panel: #ffffff;
-  --line: #e3e9eb;
-  --ink: #16232e;
-  --ink-soft: #5b6b76;
+  --line: #e2e8f0;
+  --ink: #0f172a;
+  --ink-soft: #4a5568;
+  --ink-muted: #586377;
 
-  --teal: #1e8e85;
-  --teal-soft: #dcefec;
+  /* Etats semantiques (jamais utilises comme simple decoration) */
+  --succes: #059669;
+  --succes-hover: #047857;
+  --succes-soft: #ecfdf5;
+  --succes-line: #a7f3d0;
 
-  --indigo: #233a5e;
+  --avertissement: #d97706;
+  --avertissement-soft: #fffbeb;
+  --avertissement-line: #fde68a;
 
-  --coral: #e8604c;
-  --coral-soft: #fbe3de;
+  --danger: #e11d48;
+  --danger-hover: #be123c;
+  --danger-soft: #fff1f2;
+  --danger-line: #fecdd3;
 
-  --amber: #d69a2d;
-  --amber-soft: #fbefd9;
+  --violet: #7c3aed;
+  --violet-soft: #f5f3ff;
+  --violet-line: #ddd6fe;
 
-  --sidebar-bg: #16232e;
-  --sidebar-line: #243342;
-  --sidebar-ink: #eaf1f3;
-  --sidebar-muted: #93a5b1;
-  --sidebar-hover: #243342;
+  /* Typographie */
+  --police-corps: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --police-titre: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --police-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
 
-  --primaire: var(--teal);
+  /* Formes */
+  --rayon-carte: 16px;
+  --rayon-champ: 12px;
+  --rayon-nav: 8px;
+
+  /* --------------- Alias de compatibilite (SCSS existants) ---------------
+     Les composants ecrits avant la charte referencent --teal, --coral, ...
+     On les fait pointer vers les nouveaux tokens pour ne rien casser. */
+  --teal: var(--primaire);
+  --teal-soft: var(--primaire-soft);
+  --indigo: var(--violet);
+  --coral: var(--danger);
+  --coral-soft: var(--danger-soft);
+  --amber: var(--avertissement);
+  --amber-soft: var(--avertissement-soft);
+
   --secondaire: var(--indigo);
-  --danger: var(--coral);
-  --avertissement: var(--amber);
+
+  /* Barre laterale sombre (slate-900 de la charte) */
+  --sidebar-bg: #0f172a;
+  --sidebar-line: #1e293b;
+  --sidebar-ink: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-hover: #1e293b;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0f1720;
-  --panel: #17222c;
-  --line: #243342;
-  --ink: #eaf1f3;
-  --ink-soft: #93a5b1;
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --line: #334155;
+  --ink: #e2e8f0;
+  --ink-soft: #94a3b8;
+  --ink-muted: #8494ab;
 
-  --teal: #3fc2b6;
-  --teal-soft: #153a38;
+  --primaire: #4d9ad9;
+  --primaire-hover: #6fb0e4;
+  --primaire-soft: #12283d;
 
-  --indigo: #8fb0dc;
+  --succes: #34d399;
+  --succes-hover: #10b981;
+  --succes-soft: #052e24;
+  --succes-line: #065f46;
 
-  --coral: #f07a63;
-  --coral-soft: #3a2320;
+  --avertissement: #fbbf24;
+  --avertissement-soft: #331f06;
+  --avertissement-line: #78350f;
 
-  --amber: #e6b24e;
-  --amber-soft: #3a2e13;
+  --danger: #fb7185;
+  --danger-hover: #f43f5e;
+  --danger-soft: #3b1119;
+  --danger-line: #7f1d2c;
+
+  --violet: #a78bfa;
+  --violet-soft: #201a3a;
+  --violet-line: #4c1d95;
+
+  --teal: var(--primaire);
+  --teal-soft: var(--primaire-soft);
+  --indigo: var(--violet);
+  --coral: var(--danger);
+  --coral-soft: var(--danger-soft);
+  --amber: var(--avertissement);
+  --amber-soft: var(--avertissement-soft);
+  --secondaire: var(--indigo);
+
+  --sidebar-bg: #0b1220;
+  --sidebar-line: #1e293b;
+  --sidebar-ink: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-hover: #1e293b;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--police-corps);
+  font-size: 14px;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--ink);
+  -webkit-font-smoothing: antialiased;
   transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Titres de la charte : Plus Jakarta Sans */
+h1,
+h2,
+h3,
+.font-heading {
+  font-family: var(--police-titre);
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+
+  @media (min-width: 640px) {
+    font-size: 1.875rem;
+  }
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Chiffres alignes : montants, poids, tickets */
+.font-mono-nums {
+  font-family: var(--police-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--primaire);
+  color: #fff;
 }
 
 button,
@@ -70,21 +179,56 @@ textarea {
   font-family: inherit;
 }
 
+/* Accessibilite : anneau de focus coherent, jamais supprime sans remplacement */
+:focus-visible {
+  outline: 2px solid var(--primaire);
+  outline-offset: 2px;
+}
+
+/* Fantome de fondu + zoom (remplace animate-in fade-in zoom-in-95) */
+@keyframes apparition {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: apparition 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Boutons */
 .btn {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--ink-soft);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 16px;
+  border-radius: var(--rayon-champ);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
 
   &:hover {
     background: var(--bg);
     color: var(--ink);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 
   &:disabled {
@@ -94,37 +238,37 @@ textarea {
 }
 
 .btn-primary {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--primaire);
+  border-color: var(--primaire);
   color: #fff;
 
   &:hover {
-    background: var(--teal);
-    filter: brightness(0.92);
+    background: var(--primaire-hover);
+    border-color: var(--primaire-hover);
     color: #fff;
   }
 }
 
 .btn-danger {
-  background: var(--coral);
-  border-color: var(--coral);
+  background: var(--danger);
+  border-color: var(--danger);
   color: #fff;
 
   &:hover {
-    background: var(--coral);
-    filter: brightness(0.92);
+    background: var(--danger-hover);
+    border-color: var(--danger-hover);
     color: #fff;
   }
 }
 
 .btn-success {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--succes);
+  border-color: var(--succes);
   color: #fff;
 
   &:hover {
-    background: var(--teal);
-    filter: brightness(0.92);
+    background: var(--succes-hover);
+    border-color: var(--succes-hover);
     color: #fff;
   }
 }
@@ -134,6 +278,60 @@ textarea {
   font-size: 12px;
 }
 
+/* Badges de role (charte : admin=violet, reception=bleu, production=ambre, livraison=emeraude) */
+.badge-role {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-role.bleu {
+  background: var(--primaire-soft);
+  color: var(--primaire);
+}
+.badge-role.violet {
+  background: var(--violet-soft);
+  color: var(--violet);
+}
+.badge-role.ambre {
+  background: var(--avertissement-soft);
+  color: var(--avertissement);
+}
+.badge-role.emeraude {
+  background: var(--succes-soft);
+  color: var(--succes);
+}
+
+/* Pastilles d'etat generiques (statut, actif/inactif, impaye...) */
+.pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.pill-blue {
+  background: var(--primaire-soft);
+  color: var(--primaire);
+}
+.pill-amber {
+  background: var(--avertissement-soft);
+  color: var(--avertissement);
+}
+.pill-green {
+  background: var(--succes-soft);
+  color: var(--succes);
+}
+.pill-red {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 /* Champs */
 .field {
   display: flex;
@@ -141,7 +339,7 @@ textarea {
   gap: 6px;
 
   label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--ink-soft);
   }
@@ -149,8 +347,8 @@ textarea {
   input,
   select,
   textarea {
-    padding: 9px 12px;
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: var(--rayon-champ);
     border: 1px solid var(--line);
     font-size: 14px;
     background: var(--panel);
@@ -158,8 +356,8 @@ textarea {
 
     &:focus {
       outline: none;
-      border-color: var(--teal);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
+      border-color: var(--primaire);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaire) 18%, transparent);
     }
   }
 }
@@ -167,18 +365,20 @@ textarea {
 /* Alertes */
 .alert {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--rayon-champ);
   font-size: 13px;
   margin-bottom: 14px;
 
   &.error {
-    background: var(--coral-soft);
-    color: var(--coral);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid var(--danger-line);
   }
 
   &.success {
-    background: var(--teal-soft);
-    color: var(--teal);
+    background: var(--succes-soft);
+    color: var(--succes);
+    border: 1px solid var(--succes-line);
   }
 }
 
@@ -216,10 +416,10 @@ textarea {
 .form-card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--rayon-carte);
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
 
   h3 {
     margin: 0 0 16px;
@@ -244,4 +444,27 @@ textarea {
   display: flex;
   gap: 10px;
   margin-top: 18px;
+}
+
+/* Impression : seul le recu thermique sort sur papier */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #thermal-receipt,
+  #thermal-receipt * {
+    visibility: visible;
+  }
+
+  #thermal-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0;
+    padding: 10px;
+    background: #fff;
+    color: #000;
+  }
 }

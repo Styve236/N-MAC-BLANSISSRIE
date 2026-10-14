@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { API_URL } from '../config/constants';
 import { PaiementDTO, PaiementResponseDTO } from '../models/paiement.model';
 import { StatutPaiementDTO } from '../models/commande.model';
+import { Page } from '../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class PaiementService {
@@ -13,10 +14,10 @@ export class PaiementService {
     return this.http.get<number>(`${API_URL}/api/paiements/ca-du-jour`);
   }
 
-  lister(clientId?: number, page = 0, size = 20): Observable<any> {
+  lister(clientId?: number, page = 0, size = 20): Observable<Page<PaiementResponseDTO>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (clientId) params = params.set('clientId', clientId);
-    return this.http.get(`${API_URL}/api/paiements`, { params });
+    return this.http.get<Page<PaiementResponseDTO>>(`${API_URL}/api/paiements`, { params });
   }
 
   payer(commandeId: number, dto: PaiementDTO): Observable<PaiementResponseDTO> {

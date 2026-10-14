@@ -3,10 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { extraireMessageErreur } from '../../core/interceptors/error.interceptor';
+import { pageAccueil } from '../../core/config/constants';
+import { Icon } from '../../shared/icon/icon';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Icon],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -32,7 +34,7 @@ export class Login {
     this.auth.login({ email: email!, password: password! }).subscribe({
       next: (session) => {
         this.enChargement.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigateByUrl(pageAccueil(session.role));
       },
       error: (err) => {
         this.enChargement.set(false);

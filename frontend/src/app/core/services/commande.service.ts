@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config/constants';
 import { Commande, CommandeDTO, CommandeRequestDTO, RecuDTO } from '../models/commande.model';
+import { Page } from '../models/page.model';
 
 @Injectable({ providedIn: 'root' })
 export class CommandeService {
@@ -17,21 +18,31 @@ export class CommandeService {
     statut?: string;
     dateDebut?: string;
     dateFin?: string;
+    archivee?: boolean;
     page?: number;
     size?: number;
     sort?: string;
-  }): Observable<any> {
+  }): Observable<Page<CommandeDTO>> {
     let params = new HttpParams();
     if (filtres) {
       if (filtres.clientId) params = params.set('clientId', filtres.clientId);
       if (filtres.statut) params = params.set('statut', filtres.statut);
       if (filtres.dateDebut) params = params.set('dateDebut', filtres.dateDebut);
       if (filtres.dateFin) params = params.set('dateFin', filtres.dateFin);
+      if (filtres.archivee != null) params = params.set('archivee', filtres.archivee);
       if (filtres.page != null) params = params.set('page', filtres.page);
       if (filtres.size != null) params = params.set('size', filtres.size);
       if (filtres.sort) params = params.set('sort', filtres.sort);
     }
-    return this.http.get(`${API_URL}/api/commandes`, { params });
+    return this.http.get<Page<CommandeDTO>>(`${API_URL}/api/commandes`, { params });
+  }
+
+  archiver(id: number): Observable<Commande> {
+    return this.http.patch<Commande>(`${API_URL}/api/commandes/${id}/archiver`, {});
+  }
+
+  restaurer(id: number): Observable<Commande> {
+    return this.http.patch<Commande>(`${API_URL}/api/commandes/${id}/restaurer`, {});
   }
 
   obtenir(id: number): Observable<Commande> {
