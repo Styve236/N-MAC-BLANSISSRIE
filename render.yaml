@@ -5,7 +5,9 @@ services:
     name: nmac-pressing-api
     runtime: docker
     plan: free
-    region: frankfurt
+    # Même région que la base Neon (us-east-2 / Ohio) pour éviter la latence
+    # transatlantique sur chaque requête SQL.
+    region: ohio
     dockerContext: ./pressing-api
     dockerfilePath: ./pressing-api/Dockerfile
     autoDeploy: true
