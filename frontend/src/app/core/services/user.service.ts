@@ -35,4 +35,8 @@ export class UserService {
   changerMotDePasse(id: number, password: string): Observable<UserDTO> {
     return this.http.post<UserDTO>(`${API_URL}/api/users/${id}/mot-de-passe`, { password });
   }
+
+  supprimer(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/api/users/${id}`);
+  }
 }

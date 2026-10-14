@@ -166,9 +166,22 @@
                 @if (confirmation() === u.idusers) {
                   <span>Confirmer ?</span>
                 } @else {
-                  <app-icon [nom]="u.actif ? 'trash' : 'check'" [taille]="14" />
+                  <app-icon [nom]="u.actif ? 'lock' : 'check'" [taille]="14" />
                 }
               </button>
+              @if (!estSoiMeme(u)) {
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="supprimer(u)"
+                  [title]="confirmationSuppression() === u.idusers ? 'Confirmer la suppression' : 'Supprimer définitivement'"
+                >
+                  @if (confirmationSuppression() === u.idusers) {
+                    <span>Confirmer ?</span>
+                  } @else {
+                    <app-icon nom="trash" [taille]="14" />
+                  }
+                </button>
+              }
             </td>
           </tr>
         }

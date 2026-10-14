@@ -85,6 +85,12 @@ public class RefreshTokenService {
         return refreshTokenRepository.revoquerToutesPourUtilisateur(userId);
     }
 
+    /** Purge les sessions d'un compte definitivement supprime. */
+    @Transactional
+    public long supprimerToutes(Long userId) {
+        return refreshTokenRepository.supprimerPourUtilisateur(userId);
+    }
+
     /**
      * Coupe toutes les sessions d'un compte apres detection d'un rejeu. Transaction
      * propre : elle doit aboutir meme si la requete echoue ensuite.

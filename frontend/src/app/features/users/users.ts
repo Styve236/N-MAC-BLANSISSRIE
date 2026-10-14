@@ -43,6 +43,10 @@ export class Users {
   readonly confirmation = signal<number | null>(null);
   private arretConfirmation: number | undefined;
 
+  /** Id de l'utilisateur dont la suppression attend un second clic de confirmation. */
+  readonly confirmationSuppression = signal<number | null>(null);
+  private arretSuppression: number | undefined;
+
   readonly utilisateurs = signal<UserDTO[]>([]);
   readonly enChargement = signal(true);
   readonly erreur = signal('');
@@ -151,6 +155,39 @@ export class Users {
     this.service.changerStatut(u.idusers, !u.actif).subscribe({
       next: () => {
         this.message.set(`${u.nom} est maintenant ${u.actif ? 'désactivé' : 'activé'}.`);
+        this.charger();
+      },
+      error: (err) => this.erreur.set(extraireMessageErreur(err)),
+    });
+  }
+
+  /** Vrai pour la ligne de l'administrateur connecté : suppression interdite. */
+  estSoiMeme(u: UserDTO): boolean {
+    return u.email === this.emailCourant();
+  }
+
+  supprimer(u: UserDTO): void {
+    if (!u.idusers) return;
+
+    if (this.estSoiMeme(u)) {
+      this.erreur.set('Vous ne pouvez pas supprimer votre propre compte.');
+      return;
+    }
+    // Suppression à double clic : elle est définitive, donc on exige une confirmation.
+    if (this.confirmationSuppression() !== u.idusers) {
+      if (this.arretSuppression) {
+        window.clearTimeout(this.arretSuppression);
+      }
+      this.confirmationSuppression.set(u.idusers);
+      this.arretSuppression = window.setTimeout(() => this.confirmationSuppression.set(null), 3500);
+      return;
+    }
+    this.confirmationSuppression.set(null);
+    this.erreur.set('');
+
+    this.service.supprimer(u.idusers).subscribe({
+      next: () => {
+        this.message.set(`${u.nom} a été supprimé.`);
         this.charger();
       },
       error: (err) => this.erreur.set(extraireMessageErreur(err)),

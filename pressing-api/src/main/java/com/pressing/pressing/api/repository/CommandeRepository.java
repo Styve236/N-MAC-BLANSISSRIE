@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -55,4 +56,13 @@ public interface CommandeRepository extends JpaRepository<Commande, Long>, JpaSp
             @Param("terminees") List<StatutCommande> terminees);
 
     Optional<Commande> findByNumeroTicket(String numeroTicket);
+
+    /**
+     * Detache un employe de toutes les commandes ou il intervenait comme livreur.
+     * Indispensable avant de supprimer son compte : sinon la cle etrangere
+     * "livreur_id" empeche la suppression (et les commandes sont conservees).
+     */
+    @Modifying
+    @Query("update Commande c set c.livreur = null where c.livreur.idusers = :userId")
+    int detacherLivreur(@Param("userId") Long userId);
 }

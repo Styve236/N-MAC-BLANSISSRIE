@@ -21,4 +21,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     @Modifying
     @Query("delete from RefreshToken r where length(r.token) <> 64")
     int supprimerJetonsNonHaches();
+
+    /** Purge les sessions d'un compte supprime (evite des lignes orphelines). */
+    @Modifying
+    @Query("delete from RefreshToken r where r.userId = :userId")
+    int supprimerPourUtilisateur(@Param("userId") Long userId);
 }

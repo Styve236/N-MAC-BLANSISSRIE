@@ -1,6 +1,7 @@
 package com.pressing.pressing.api.controller;
 import com.pressing.pressing.api.dto.request.UserRequestDTO;
 import com.pressing.pressing.api.dto.response.UserDTO;
+import com.pressing.pressing.api.security.UtilisateurPrincipal;
 import com.pressing.pressing.api.service.UserService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 
 
@@ -62,5 +64,13 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserDTO reinitialiserMotDePasse(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return userService.reinitialiserMotDePasse(id, body.get("password"));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void supprimer(@PathVariable Long id, Authentication authentication) {
+        UtilisateurPrincipal principal = (UtilisateurPrincipal) authentication.getPrincipal();
+        userService.supprimer(id, principal.getUsers().getEmail());
     }
 }

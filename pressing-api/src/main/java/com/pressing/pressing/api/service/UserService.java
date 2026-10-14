@@ -1,9 +1,11 @@
 package com.pressing.pressing.api.service;
+import com.pressing.pressing.api.common.exception.ConflitDonneeException;
 import com.pressing.pressing.api.common.exception.DonneeDejaExistanteException;
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import com.pressing.pressing.api.dto.request.UserRequestDTO;
 import com.pressing.pressing.api.dto.response.UserDTO;
 import com.pressing.pressing.api.entite.Users;
+import com.pressing.pressing.api.repository.CommandeRepository;
 import com.pressing.pressing.api.repository.UserRepository;
 import com.pressing.pressing.api.entite.Role;
 import java.util.List;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 
@@ -22,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final CommandeRepository commandeRepository;
 
     public UserDTO creer(UserRequestDTO dto) {
         if (dto.getPassword() == null || dto.getPassword().isBlank()) {
@@ -100,6 +104,27 @@ public class UserService {
         // Un mot de passe reinitialise doit invalider les sessions actives.
         refreshTokenService.revoquerToutes(utilisateur.getIdusers());
         return toDTO(userRepository.save(utilisateur));
+    }
+
+    /**
+     * Supprime definitivement un compte employe. Un administrateur ne peut pas
+     * supprimer son propre compte (garde-fou cote serveur, en plus du frontend).
+     */
+    @Transactional
+    public void supprimer(Long id, String emailCourant) {
+        Users utilisateur = userRepository.findById(id)
+                .orElseThrow(() -> new RessourceNotFoundException("Employé introuvable avec l'id : " + id));
+
+        if (utilisateur.getEmail() != null && utilisateur.getEmail().equalsIgnoreCase(emailCourant)) {
+            throw new ConflitDonneeException("Vous ne pouvez pas supprimer votre propre compte.");
+        }
+
+        // Les commandes ne doivent jamais etre supprimees : on detache seulement le
+        // livreur pour lever la contrainte de cle etrangere.
+        commandeRepository.detacherLivreur(id);
+        // Ferme et purge toutes les sessions du compte supprime.
+        refreshTokenService.supprimerToutes(id);
+        userRepository.delete(utilisateur);
     }
 
     private UserDTO toDTO(Users u) {
