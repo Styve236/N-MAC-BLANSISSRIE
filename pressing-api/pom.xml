@@ -112,6 +112,13 @@
 			<artifactId>openpdf</artifactId>
 			<version>2.0.3</version>
 		</dependency>
+		<!-- Stockage persistant des photos sur Cloudinary (gratuit). Facultatif :
+		     si les identifiants ne sont pas fournis, les photos restent sur le disque local. -->
+		<dependency>
+			<groupId>com.cloudinary</groupId>
+			<artifactId>cloudinary-http44</artifactId>
+			<version>1.39.0</version>
+		</dependency>
     </dependencies>
 
 	<build>

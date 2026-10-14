@@ -35,6 +35,15 @@ services:
         value: framework
       - key: RATE_LIMIT_PROXY_CONFIANCE
         value: "true"
+      # --- Stockage persistant des photos sur Cloudinary (gratuit) ---
+      # Renseigner ces 3 valeurs pour que les photos survivent aux redéploiements.
+      # Les laisser vides = stockage local éphémère.
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       # --- liens de reçus/SMS : URL publique du backend Render ---
       - key: SMS_RECU_BASE_URL
         sync: false

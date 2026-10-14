@@ -1,10 +1,13 @@
 package com.pressing.pressing.api.service;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.pressing.pressing.api.common.exception.RessourceNotFoundException;
 import com.pressing.pressing.api.dto.response.PhotoDTO;
 import com.pressing.pressing.api.entite.LigneCommande;
 import com.pressing.pressing.api.entite.Photo;
 import com.pressing.pressing.api.repository.LigneCommandeRepository;
 import com.pressing.pressing.api.repository.PhotoRepository;
+import jakarta.annotation.PostConstruct;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -12,10 +15,15 @@ import java.awt.RenderingHints;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -24,6 +32,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -39,13 +48,47 @@ public class PhotoService {
 
     private static final int TAILLE_MAX = 1600;
     private static final float QUALITE_JPG = 0.75f;
+    // Marque les photos stockees sur Cloudinary : url = "cloudinary:<public_id>".
+    private static final String PREFIXE_CLOUDINARY = "cloudinary:";
+    private static final HttpClient HTTP = HttpClient.newHttpClient();
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhotoService.class);
 
     @Value("${photo.upload.dir}")
     private String uploadDir;
 
+    @Value("${cloudinary.cloud-name:}")
+    private String cloudName;
+
+    @Value("${cloudinary.api-key:}")
+    private String cloudApiKey;
+
+    @Value("${cloudinary.api-secret:}")
+    private String cloudApiSecret;
+
+    // Non nul uniquement si les identifiants Cloudinary sont fournis.
+    private Cloudinary cloudinary;
+
     private final PhotoRepository photoRepository;
     private final LigneCommandeRepository ligneCommandeRepository;
+
+    @PostConstruct
+    void initStockage() {
+        if (estRenseigne(cloudName) && estRenseigne(cloudApiKey) && estRenseigne(cloudApiSecret)) {
+            cloudinary = new Cloudinary(ObjectUtils.asMap(
+                    "cloud_name", cloudName,
+                    "api_key", cloudApiKey,
+                    "api_secret", cloudApiSecret,
+                    "secure", true));
+            log.info("Stockage des photos : Cloudinary (cloud_name={})", cloudName);
+        } else {
+            log.info("Stockage des photos : disque local ({}) — non persistant. "
+                    + "Renseignez CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET pour la persistance.", uploadDir);
+        }
+    }
+
+    private static boolean estRenseigne(String valeur) {
+        return valeur != null && !valeur.isBlank();
+    }
 
     @Transactional(readOnly = true)
     public List<PhotoDTO> listerParLigne(Long idligne) {
@@ -83,18 +126,10 @@ public class PhotoService {
         }
 
         String dossier = "commande_" + ligne.getCommande().getIdcommande() + "/ligne_" + ligne.getIdligne();
-        String nomFichier = UUID.randomUUID().toString().replace("-", "") + ".jpg";
-        String cheminRelatif = dossier + "/" + nomFichier;
-
-        try {
-            Files.createDirectories(Path.of(uploadDir, dossier));
-            Files.write(Path.of(uploadDir, cheminRelatif), jpeg);
-        } catch (IOException e) {
-            throw new IllegalStateException("Impossible d'enregistrer la photo : " + e.getMessage(), e);
-        }
+        String stockage = enregistrer(jpeg, dossier);
 
         Photo photo = Photo.builder()
-                .url(cheminRelatif)
+                .url(stockage)
                 .typephoto(typePhoto)
                 .dateTime(LocalDateTime.now())
                 .build();
@@ -103,14 +138,56 @@ public class PhotoService {
         return toDTO(photo);
     }
 
+    // Envoie l'image sur Cloudinary si configuré, sinon l'écrit sur le disque local.
+    // Renvoie la référence stockée dans Photo.url.
+    private String enregistrer(byte[] jpeg, String dossier) {
+        if (cloudinary != null) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> resultat = cloudinary.uploader().upload(jpeg, ObjectUtils.asMap(
+                        "folder", dossier,
+                        "resource_type", "image",
+                        "overwrite", false));
+                String publicId = (String) resultat.get("public_id");
+                if (!estRenseigne(publicId)) {
+                    throw new IllegalStateException("Réponse Cloudinary inattendue (public_id absent)");
+                }
+                return PREFIXE_CLOUDINARY + publicId;
+            } catch (IOException e) {
+                throw new IllegalStateException("Échec de l'envoi de la photo vers Cloudinary : " + e.getMessage(), e);
+            }
+        }
+
+        String nomFichier = UUID.randomUUID().toString().replace("-", "") + ".jpg";
+        String cheminRelatif = dossier + "/" + nomFichier;
+        try {
+            Files.createDirectories(Path.of(uploadDir, dossier));
+            Files.write(Path.of(uploadDir, cheminRelatif), jpeg);
+        } catch (IOException e) {
+            throw new IllegalStateException("Impossible d'enregistrer la photo : " + e.getMessage(), e);
+        }
+        return cheminRelatif;
+    }
+
     @Transactional
     public void supprimer(Long idphoto) {
         Photo photo = photoRepository.findById(idphoto)
                 .orElseThrow(() -> new RessourceNotFoundException("Photo introuvable avec l'id : " + idphoto));
-        try {
-            Files.deleteIfExists(Path.of(uploadDir, photo.getUrl()));
-        } catch (IOException e) {
-            log.warn("Fichier photo non supprimé sur le disque : {}", photo.getUrl(), e);
+        String url = photo.getUrl();
+        if (estReferenceCloudinary(url)) {
+            if (cloudinary != null) {
+                try {
+                    cloudinary.uploader().destroy(url.substring(PREFIXE_CLOUDINARY.length()), ObjectUtils.emptyMap());
+                } catch (IOException e) {
+                    log.warn("Photo Cloudinary non supprimée : {}", url, e);
+                }
+            }
+        } else {
+            try {
+                Files.deleteIfExists(Path.of(uploadDir, url));
+            } catch (IOException e) {
+                log.warn("Fichier photo non supprimé sur le disque : {}", url, e);
+            }
         }
         photoRepository.delete(photo);
     }
@@ -118,11 +195,42 @@ public class PhotoService {
     public Resource getFichier(Long idphoto) {
         Photo photo = photoRepository.findById(idphoto)
                 .orElseThrow(() -> new RessourceNotFoundException("Photo introuvable avec l'id : " + idphoto));
-        Path chemin = Path.of(uploadDir, photo.getUrl());
+        String url = photo.getUrl();
+
+        if (estReferenceCloudinary(url)) {
+            String publicId = url.substring(PREFIXE_CLOUDINARY.length());
+            String urlLivraison = cloudinary.url().secure(true).generate(publicId);
+            try {
+                byte[] octets = telecharger(urlLivraison);
+                return new PhotoResource(octets, "photo.jpg");
+            } catch (IOException e) {
+                throw new IllegalStateException("Impossible de récupérer la photo depuis Cloudinary : " + e.getMessage(), e);
+            }
+        }
+
+        Path chemin = Path.of(uploadDir, url);
         if (!Files.exists(chemin)) {
             throw new RessourceNotFoundException("Fichier photo introuvable sur le disque");
         }
         return new FileSystemResource(chemin);
+    }
+
+    private static boolean estReferenceCloudinary(String url) {
+        return url != null && url.startsWith(PREFIXE_CLOUDINARY);
+    }
+
+    private static byte[] telecharger(String url) throws IOException {
+        HttpRequest requete = HttpRequest.newBuilder(URI.create(url)).GET().build();
+        try {
+            HttpResponse<byte[]> reponse = HTTP.send(requete, HttpResponse.BodyHandlers.ofByteArray());
+            if (reponse.statusCode() >= 400) {
+                throw new IOException("Cloudinary a répondu HTTP " + reponse.statusCode());
+            }
+            return reponse.body();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Téléchargement de la photo interrompu", e);
+        }
     }
 
     private BufferedImage redimensionnerSiNecessaire(BufferedImage image) {
@@ -178,5 +286,20 @@ public class PhotoService {
         dto.setTypephoto(photo.getTypephoto());
         dto.setDateTime(photo.getDateTime());
         return dto;
+    }
+
+    // Resource en mémoire avec un nom de fichier (pour déduire le Content-Type côté contrôleur).
+    private static final class PhotoResource extends ByteArrayResource {
+        private final String nomFichier;
+
+        PhotoResource(byte[] contenu, String nomFichier) {
+            super(contenu);
+            this.nomFichier = nomFichier;
+        }
+
+        @Override
+        public String getFilename() {
+            return nomFichier;
+        }
     }
 }
