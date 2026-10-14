@@ -24,24 +24,29 @@ export function extraireMessageErreur(err: HttpErrorResponse): string {
   if (err.status === 0) {
     return 'Impossible de joindre le serveur.';
   }
-  const body = err.error as { message?: string; erreurs?: string[]; status?: number };
+  // Le corps d'erreur peut être un objet JSON ({ message, erreurs }) ou une
+  // simple chaîne (ex. les @ExceptionHandler du backend renvoient du texte brut).
+  const body = err.error as { message?: string; erreurs?: string[]; status?: number } | string | null | undefined;
+  const message = typeof body === 'string' ? body : body?.message;
+  const erreurs = body !== null && typeof body === 'object' ? body.erreurs : undefined;
+
   if (err.status === 401) {
-    return body?.message ?? 'Authentification requise.';
+    return message ?? 'Authentification requise.';
   }
   if (err.status === 403) {
-    return body?.message ?? 'Accès refusé.';
+    return message ?? 'Accès refusé.';
   }
   if (err.status === 429) {
-    return body?.message ?? 'Trop de tentatives, réessayez plus tard.';
+    return message ?? 'Trop de tentatives, réessayez plus tard.';
   }
   if (err.status >= 500) {
-    return body?.message ?? 'Le serveur a rencontré un problème. Réessayez dans un instant.';
+    return message ?? 'Le serveur a rencontré un problème. Réessayez dans un instant.';
   }
-  if (Array.isArray(body?.erreurs) && body!.erreurs!.length > 0) {
-    return body!.erreurs!.join(' • ');
+  if (Array.isArray(erreurs) && erreurs.length > 0) {
+    return erreurs.join(' • ');
   }
-  if (body?.message) {
-    return body.message;
+  if (message) {
+    return message;
   }
   return `Erreur ${err.status} lors de la requête.`;
 }
