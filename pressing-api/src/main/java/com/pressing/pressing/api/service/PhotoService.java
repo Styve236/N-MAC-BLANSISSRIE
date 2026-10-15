@@ -74,6 +74,11 @@ public class PhotoService {
     @PostConstruct
     void initStockage() {
         if (estRenseigne(cloudName) && estRenseigne(cloudApiKey) && estRenseigne(cloudApiSecret)) {
+            // trim() : un espace colle dans la variable d'env casserait l'URL Cloudinary
+            // ("Illegal character in path").
+            cloudName = cloudName.trim();
+            cloudApiKey = cloudApiKey.trim();
+            cloudApiSecret = cloudApiSecret.trim();
             cloudinary = new Cloudinary(ObjectUtils.asMap(
                     "cloud_name", cloudName,
                     "api_key", cloudApiKey,
